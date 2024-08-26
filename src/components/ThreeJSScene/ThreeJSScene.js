@@ -18,12 +18,12 @@ export function initScene() {
   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
   camera.position.set(0, 150, 500);
 
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-  scene.add(ambientLight);
+  // const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+  // scene.add(ambientLight);
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  directionalLight.position.set(200, 200, 100);
-  scene.add(directionalLight);
+  // const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  // directionalLight.position.set(200, 200, 100);
+  // scene.add(directionalLight);
 
   // Загрузка окружения .exr
   const loader = new EXRLoader();

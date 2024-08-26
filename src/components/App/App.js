@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Layout, Menu, Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { initScene } from '../ThreeJSScene/ThreeJSScene';
-import { createGlassObjects } from '../basic1/Basic1';
+import { createBasic1Objects } from '../basic1/Basic1';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-// import Basic1 from '../basic1/Basic1';
-import * as THREE from 'three';
 
 const { Sider } = Layout;
 
@@ -19,23 +17,14 @@ const items = [
 const App = () => {
   const [selectedObject, setSelectedObject] = useState('1');
   const [sceneReady, setSceneReady] = useState(false);
-  const [objects, setОbjects] = useState([]);
-  const [sceneParams, setSceneParams] = useState(null);
+  const sceneParamsRef = useRef(null);
 
   useEffect(() => {
     // инициализация сцены
     const { scene, camera, renderer } = initScene();
-
     const controls = new OrbitControls(camera, renderer.domElement);
 
-    //добавление объектов
-    // const createdObjects = createGlassObjects(scene.environment);
-    // // обновление объектов
-    // // updateObjects(scene, createdObjects);
-    // setОbjects(createdObjects);
-    // objects.forEach(obj => scene.add(obj));
-
-    setSceneParams({ scene, camera, renderer, controls });
+    sceneParamsRef.current = { scene, camera, renderer, controls };
 
     const animate = () => {
       requestAnimationFrame(animate);
@@ -46,43 +35,65 @@ const App = () => {
 
     animate();
 
+    // функция, адаптирующая сцену под размер экрана
+    const handleResize = () => {
+      const { camera, renderer } = sceneParamsRef.current || {};
+
+      if (camera && renderer) {
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+
+        // задержка срабатывания для предотвращения слишком частых срабатываний
+        (function throttle() {
+          setTimeout(() => {
+
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+
+          }, 500);
+        }())
+
+      } else {
+        console.log('No sceneParams');
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
     return () => {
       document.body.removeChild(renderer.domElement);
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
   useEffect(() => {
-    if (!sceneParams) return; // Ждём пока сцена инициализируется
+    // удаление старых мешей добавление новых
+    const { scene } = sceneParamsRef.current || {};
 
-    const { scene } = sceneParams;
-    // Удаляем все меши (объекты) из сцены
-    scene.children.forEach((child) => {
-      if (child instanceof THREE.Mesh) {
-        scene.remove(child);
-      }
-    });
+    if (!scene) return; // Ждём пока сцена инициализируется
+
+    // Удаляем все объекты из сцены. Важно: не использовать для сложных сцен с освещением, хэлперами и проч
+    while (scene.children.length > 0) {
+      scene.remove(scene.children[0]);
+    }
 
     // Выбираем объекты для сцены на основе selectedObject
     if (selectedObject === '1') {
-      const createdObjects = createGlassObjects(scene.environment);
-      // обновление объектов
-      setОbjects(createdObjects);
+      const createdObjects = createBasic1Objects(scene.environment);
       // Добавляем переданные объекты в сцену
-      objects.forEach(obj => scene.add(obj));
-      // setObjects(objects);
+      createdObjects.forEach(obj => scene.add(obj));
     } else if (selectedObject === '2') {
-      // Создаем и добавляем куб в сцену
-      const geometry = new THREE.BoxGeometry(100, 100, 100);
-      const material = new THREE.MeshLambertMaterial({ color: 0x361D2E });
-      const cube = new THREE.Mesh(geometry, material);
-      cube.castShadow = true;
+      // const geometry = new THREE.BoxGeometry(100, 100, 100);
+      // const material = new THREE.MeshLambertMaterial({ color: 0x361D2E });
+      // const cube = new THREE.Mesh(geometry, material);
+      // cube.castShadow = true;
 
-      scene.add(cube);
-      // setObjects([cube]);
+      // scene.add(cube);
     }
 
-  }, [selectedObject, objects]);
-
+  }, [selectedObject]);
 
   // Если сцена не загружена, показать спин
   if (!sceneReady) {
@@ -120,8 +131,7 @@ const App = () => {
         />
       </Sider>
     </Layout>
-  );;
+  );
 };
 
 export default App;
-
