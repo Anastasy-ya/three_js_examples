@@ -33,7 +33,7 @@ export function createBasic1Objects(environmentTexture) {
   const glassGeometry = createRoundedBoxGeometry(100, 100, 100, 10 / 3, 2); // Радиус скругления = 10, плавность = 10
 
   const glassMaterial = new THREE.MeshPhysicalMaterial({
-    color: 'black',
+    color: 0xffffff,
     metalness: 0,
     roughness: 0,
     transmission: 1.0, // прозрачность
@@ -55,9 +55,13 @@ export function createBasic1Objects(environmentTexture) {
 
   const material2 = new THREE.MeshPhysicalMaterial({
     color: 0x00ffff,
-    opacity: 0.5,
-    transmission: 0.8,
-    ior: 1.5
+    opacity: 0.1, // Уменьшаем непрозрачность
+    transmission: 1, // Увеличиваем прозрачность
+    ior: 1.5,
+    roughness: 0.5, // Высокая шероховатость для матового эффекта
+    metalness: 0.0, // Отсутствие металлического блеска
+    clearcoat: 0.0, // Отсутствие прозрачного верхнего слоя
+    clearcoatRoughness: 0.8 // Шероховатость прозрачного слоя
   });
   const cube2 = new THREE.Mesh(geometry, material2);
   cube2.castShadow = true;

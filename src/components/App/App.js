@@ -5,7 +5,7 @@ import { initScene } from '../ThreeJSScene/ThreeJSScene';
 import { createBasic1Objects } from '../basic1/Basic1Objects';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
-import { handleCubeClick, createDecals } from '../basic1/Basic1Functions';
+import { handleCubeClick, createDecals, createLineToCentresOfGeometry } from '../basic1/Basic1Functions';
 
 const { Sider } = Layout;
 
@@ -17,7 +17,9 @@ const items = [
 ];
 
 const App = () => {
-  const [selectedObject, setSelectedObject] = useState('1');
+  const [selectedObject, setSelectedObject] = useState(
+    // JSON.parse(localStorage.getItem("selectedObject")) || 
+    '1'); //записать его в локал сторадж заразу
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
 
@@ -82,20 +84,20 @@ const App = () => {
     }
 
     // Выбираем объекты для сцены на основе selectedObject
-    if (selectedObject === '1') {
+    if (selectedObject === '1' || selectedObject === '2' || selectedObject === '3' || selectedObject === '4') {
 
       const createdObjects = createBasic1Objects(scene.environment);
       // Добавляем переданные объекты в сцену
       createdObjects.forEach(obj => scene.add(obj));
 
-    } else if (selectedObject === '2') {
+    } else if (selectedObject === '5') {
       // console.log(selectedObject)
 
       const createdObjects = createBasic1Objects(scene.environment);
       // Объекты не меняются
       createdObjects.forEach(obj => scene.add(obj));
 
-    } else if (selectedObject === '3') {
+    } else if (selectedObject === '6') {
 
       // объекты для третьей сцены
 
@@ -110,6 +112,8 @@ const App = () => {
       window.removeEventListener('click', onClick);
     };
   }, []);
+
+  console.log(selectedObject)
 
   const onClick = (event) => {
     if (sceneParamsRef.current) {
@@ -148,17 +152,18 @@ const App = () => {
           // selectedObject === '5' ? console.log() :
           // selectedObject === '6' ? console.log() : console.log();
           console.log(selectedObject, 'вторая проверка selectedObject перед выбором функ')
-          if (selectedObject === '2') {
-            console.log('clicked 2')
+          if (selectedObject === '3') {
+            console.log('clicked 3')
             handleCubeClick(clickedObject);
-          } else if (selectedObject === '1') {
-            console.log('clicked 1')
+          } else if (selectedObject === '2') {
+            console.log('clicked 2')
             // передан первый эл массива с информацией о пересечениях
             // если клик попадет по грани, createDecals вернет null
             createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0])) 
 
-          } else if (selectedObject === '3') {
-            console.log('Другая функция для пункта 3');
+          } else if (selectedObject === '1') { //TODO поменять значения обратно
+            console.log('clicked 1');
+            createDecals(intersects[0]) !== null && scene.add(createLineToCentresOfGeometry(intersects[0]));
           } else {
             console.log('Функция для другого пункта меню');
           }
@@ -168,7 +173,7 @@ const App = () => {
     }
   };
 
-  console.log(selectedObject)
+
 
   // Если сцена не загружена, показать спин
   if (!sceneReady) {
@@ -201,8 +206,9 @@ const App = () => {
           onClick={(e) => {
             console.log(e.key, 'значение выбранной клавиши записывается в SelectedObject')
             setSelectedObject(e.key)
+            // localStorage.setItem("selectedObject", JSON.stringify(selectedObject))
           }}
-          selectedKeys={[selectedObject]}
+          selectedKeys={selectedObject}
           theme="dark"
           items={items}
           style={{ width: '200px' }}
