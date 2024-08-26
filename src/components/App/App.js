@@ -5,7 +5,7 @@ import { initScene } from '../ThreeJSScene/ThreeJSScene';
 import { createBasic1Objects } from '../basic1/Basic1Objects';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
-import { handleCubeClick } from '../basic1/Basic1Functions';
+import { handleCubeClick, createDecals } from '../basic1/Basic1Functions';
 
 const { Sider } = Layout;
 
@@ -83,16 +83,22 @@ const App = () => {
 
     // Выбираем объекты для сцены на основе selectedObject
     if (selectedObject === '1') {
+
       const createdObjects = createBasic1Objects(scene.environment);
       // Добавляем переданные объекты в сцену
       createdObjects.forEach(obj => scene.add(obj));
-    } else if (selectedObject === '2') {
-      // const geometry = new THREE.BoxGeometry(100, 100, 100);
-      // const material = new THREE.MeshLambertMaterial({ color: 0x361D2E });
-      // const cube = new THREE.Mesh(geometry, material);
-      // cube.castShadow = true;
 
-      // scene.add(cube);
+    } else if (selectedObject === '2') {
+      // console.log(selectedObject)
+
+      const createdObjects = createBasic1Objects(scene.environment);
+      // Объекты не меняются
+      createdObjects.forEach(obj => scene.add(obj));
+
+    } else if (selectedObject === '3') {
+
+      // объекты для третьей сцены
+
     }
 
   }, [selectedObject]);
@@ -106,27 +112,63 @@ const App = () => {
   }, []);
 
   const onClick = (event) => {
-    if (sceneParamsRef.current) { // Используем sceneParamsRef для доступа к текущей сцене и камере
-      const { scene, camera } = sceneParamsRef.current; // Деструктуризация нужных объектов
+    if (sceneParamsRef.current) {
+      const { scene, camera } = sceneParamsRef.current;
       const raycaster = new THREE.Raycaster();
       const mouse = new THREE.Vector2();
-  
-      // Преобразуем координаты клика в нормализованные координаты устройства (NDC)
+
+      // Преобразуем координаты клика в нормализованные координаты устройства
+      // event.clientX и event.clientY содержат пиксельные координаты курсора 
+      // мыши относительно левого и верхнего краев
+      // Пиксельные координаты делятся на ширину и высоту окна соответственно, 
+      // чтобы нормализовать их в диапазоне от 0 до 1. Это означает, 
+      // что положение мыши в центре окна будет иметь x = 0.5 и y = 0.5.
+      // Нормализованные значения затем умножаются на 2 и вычитается 1, чтобы 
+      // масштабировать их до диапазона NDC от -1 до 1. Это гарантирует, 
+      // что положение мыши представлено последовательно на разных размерах экрана
+      // Координата y инвертируется, потому что начало системы координат NDC находится в нижнем левом углу
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  
+
       raycaster.setFromCamera(mouse, camera); // Устанавливаем луч от камеры на основании положения мыши
-  
+
       const intersects = raycaster.intersectObjects(scene.children); // Пересекаем все объекты в сцене
-  
+
       if (intersects.length > 0) {
-        const clickedObject = intersects[0].object; // Получаем объект, на который кликнули
-        handleCubeClick(clickedObject); // Вызываем функцию обработки клика, передавая объект
+        const clickedObject = intersects[0].object; // Получаем объект, на который кликнули первым
+
+        if ( clickedObject instanceof THREE.Object3D ) { // проверка является ли это Object3D
+
+          // selectedObject === '2' ? handleCubeClick(clickedObject) :
+          // selectedObject === '1' ? (  // передан первый эл массива с информацией о пересечениях
+          //   createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0])) // если клик попадет по грани, createDecals вернет null
+          // ) :
+          // selectedObject === '3' ? console.log() :
+          // selectedObject === '4' ? console.log() :
+          // selectedObject === '5' ? console.log() :
+          // selectedObject === '6' ? console.log() : console.log();
+          console.log(selectedObject, 'вторая проверка selectedObject перед выбором функ')
+          if (selectedObject === '2') {
+            console.log('clicked 2')
+            handleCubeClick(clickedObject);
+          } else if (selectedObject === '1') {
+            console.log('clicked 1')
+            // передан первый эл массива с информацией о пересечениях
+            // если клик попадет по грани, createDecals вернет null
+            createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0])) 
+
+          } else if (selectedObject === '3') {
+            console.log('Другая функция для пункта 3');
+          } else {
+            console.log('Функция для другого пункта меню');
+          }
+        }
+
       }
     }
   };
-  
-  
+
+  console.log(selectedObject)
 
   // Если сцена не загружена, показать спин
   if (!sceneReady) {
@@ -156,8 +198,11 @@ const App = () => {
       <Sider style={{ position: 'fixed' }}>
         <Menu
           mode="vertical"
-          onClick={(e) => setSelectedObject(e.key)}
-          defaultSelectedKeys={['1']}
+          onClick={(e) => {
+            console.log(e.key, 'значение выбранной клавиши записывается в SelectedObject')
+            setSelectedObject(e.key)
+          }}
+          selectedKeys={[selectedObject]}
           theme="dark"
           items={items}
           style={{ width: '200px' }}
