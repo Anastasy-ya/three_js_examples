@@ -111,9 +111,7 @@ const App = () => {
     return () => {
       window.removeEventListener('click', onClick);
     };
-  }, []);
-
-  console.log(selectedObject)
+  }, [selectedObject]);
 
   const onClick = (event) => {
     if (sceneParamsRef.current) {
@@ -206,7 +204,6 @@ const App = () => {
           onClick={(e) => {
             console.log(e.key, 'значение выбранной клавиши записывается в SelectedObject')
             setSelectedObject(e.key)
-            // localStorage.setItem("selectedObject", JSON.stringify(selectedObject))
           }}
           selectedKeys={selectedObject}
           theme="dark"
