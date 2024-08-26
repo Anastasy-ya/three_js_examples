@@ -2,8 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Layout, Menu, Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { initScene } from '../ThreeJSScene/ThreeJSScene';
-import { createBasic1Objects } from '../basic1/Basic1';
+import { createBasic1Objects } from '../basic1/Basic1Objects';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import * as THREE from 'three';
+import { handleCubeClick } from '../basic1/Basic1Functions';
 
 const { Sider } = Layout;
 
@@ -94,6 +96,37 @@ const App = () => {
     }
 
   }, [selectedObject]);
+
+  // обработка клика
+  useEffect(() => {
+    window.addEventListener('click', onClick);
+    return () => {
+      window.removeEventListener('click', onClick);
+    };
+  }, []);
+
+  const onClick = (event) => {
+    if (sceneParamsRef.current) { // Используем sceneParamsRef для доступа к текущей сцене и камере
+      const { scene, camera } = sceneParamsRef.current; // Деструктуризация нужных объектов
+      const raycaster = new THREE.Raycaster();
+      const mouse = new THREE.Vector2();
+  
+      // Преобразуем координаты клика в нормализованные координаты устройства (NDC)
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  
+      raycaster.setFromCamera(mouse, camera); // Устанавливаем луч от камеры на основании положения мыши
+  
+      const intersects = raycaster.intersectObjects(scene.children); // Пересекаем все объекты в сцене
+  
+      if (intersects.length > 0) {
+        const clickedObject = intersects[0].object; // Получаем объект, на который кликнули
+        handleCubeClick(clickedObject); // Вызываем функцию обработки клика, передавая объект
+      }
+    }
+  };
+  
+  
 
   // Если сцена не загружена, показать спин
   if (!sceneReady) {

@@ -48,7 +48,7 @@ export function createBasic1Objects(environmentTexture) {
   glassMesh1.castShadow = true;
   glassMesh1.receiveShadow = true;
   glassMesh1.position.x = -100;
-  glassMesh1.name = 'стекло со скосом граней';
+  glassMesh1.name = 'стекло со скруглением граней';
 
   // Обычный куб
   const geometry = new THREE.BoxGeometry(100, 100, 100);
