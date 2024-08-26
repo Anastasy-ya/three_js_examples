@@ -1,103 +1,114 @@
-import React, { useRef, useEffect, useState } from 'react';
-import './App.css';
-import { Layout, Menu } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Layout, Menu, Spin } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+import { initScene } from '../ThreeJSScene/ThreeJSScene';
+import { createGlassObjects } from '../basic1/Basic1';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+// import Basic1 from '../basic1/Basic1';
 import * as THREE from 'three';
-import cubes from '../basic1/Basic1';
-import ThreeJSScene from '../ThreeJSScene/ThreeJSScene';
 
-const { Content, Sider } = Layout;
+const { Sider } = Layout;
+
+// значения клавиш меню
+const items = [
+  { key: '1', label: 'Basic 1' },
+  { key: '2', label: 'Basic 2' },
+  { key: '3', label: 'Basic 3' },
+];
 
 const App = () => {
-  const sceneContainerRef = useRef(null);
-  const sceneRef = useRef(null);
-  const [initialized, setInitialized] = useState(false);
   const [selectedObject, setSelectedObject] = useState('1');
-  const cubesRef = useRef(cubes);
-
-  const updateObjects = (scene) => {
-    // Удаляем все объекты из сцены
-    while (scene.children.length > 0) {
-      scene.remove(scene.children[0]);
-    }
-
-    if (selectedObject === '1') {
-      // Добавляем кубы из basic1
-      cubesRef.current.forEach(cube => {
-        scene.add(cube);
-      });
-    } else if (selectedObject === '2') {
-      const geometry = new THREE.SphereGeometry();
-      const material = new THREE.MeshLambertMaterial({ color: 0x361D2E });
-      const sphere = new THREE.Mesh(geometry, material);
-      scene.add(sphere);
-    }
-  };
+  const [sceneReady, setSceneReady] = useState(false);
+  const [objects, setОbjects] = useState([]);
+  const [sceneParams, setSceneParams] = useState(null);
 
   useEffect(() => {
-    const handleCubeClick = (index) => {
-      const cube = cubesRef.current[index];
-      // Если куб существует, то изменяем его свойства
-    if (cube) {
-      // Устанавливаем случайный масштаб для куба
-      cube.scale.set(Math.random() * 2 + 0.5, Math.random() * 2 + 0.5, Math.random() * 2 + 0.5);
+    // инициализация сцены
+    const { scene, camera, renderer } = initScene();
 
-      // Устанавливаем случайное вращение для куба
-      cube.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
+    const controls = new OrbitControls(camera, renderer.domElement);
 
-      // Устанавливаем случайный цвет для куба
-      cube.material.color.setHex(Math.random() * 0xffffff);
-    }
-  };
+    //добавление объектов
+    // const createdObjects = createGlassObjects(scene.environment);
+    // // обновление объектов
+    // // updateObjects(scene, createdObjects);
+    // setОbjects(createdObjects);
+    // objects.forEach(obj => scene.add(obj));
 
-  // Эта функция обрабатывает событие клика на сцену
-  const onClick = (event) => {
-    // Если сцена существует, то обрабатываем клик
-    if (sceneRef.current) {
-      // Получаем ссылки на сцену и камеру
-      const { scene, camera } = sceneRef.current;
+    setSceneParams({ scene, camera, renderer, controls });
 
-      // Создаем новый объект Raycaster для определения пересечения с объектами
-      const raycaster = new THREE.Raycaster();
-
-      // Создаем новый объект Vector2 для хранения координат мыши
-      const mouse = new THREE.Vector2();
-
-      // Устанавливаем координаты мыши в нормализованном виде
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-      // Устанавливаем направление луча исходя из положения мыши и камеры
-      raycaster.setFromCamera(mouse, camera);
-
-      // Получаем массив объектов, пересеченных лучом
-      const intersects = raycaster.intersectObjects(cubesRef.current);
-
-      // Если есть пересечения, то обрабатываем клик на куб
-      if (intersects.length > 0) {
-        // Получаем индекс кликнутого куба
-        const clickedCubeIndex = cubesRef.current.indexOf(intersects[0].object);
-
-        // Вызываем функцию обработки клика на куб
-        handleCubeClick(clickedCubeIndex);
-        }
-      }
+    const animate = () => {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+      setSceneReady(true);
     };
 
-    window.addEventListener('click', onClick);
+    animate();
 
     return () => {
-      window.removeEventListener('click', onClick);
+      document.body.removeChild(renderer.domElement);
     };
   }, []);
 
-  const items = [
-    { key: '1', label: 'Basic 1' },
-    { key: '2', label: 'Basic 2' },
-    { key: '3', label: 'Basic 3' },
-  ];
+  useEffect(() => {
+    if (!sceneParams) return; // Ждём пока сцена инициализируется
 
+    const { scene } = sceneParams;
+    // Удаляем все меши (объекты) из сцены
+    scene.children.forEach((child) => {
+      if (child instanceof THREE.Mesh) {
+        scene.remove(child);
+      }
+    });
+
+    // Выбираем объекты для сцены на основе selectedObject
+    if (selectedObject === '1') {
+      const createdObjects = createGlassObjects(scene.environment);
+      // обновление объектов
+      setОbjects(createdObjects);
+      // Добавляем переданные объекты в сцену
+      objects.forEach(obj => scene.add(obj));
+      // setObjects(objects);
+    } else if (selectedObject === '2') {
+      // Создаем и добавляем куб в сцену
+      const geometry = new THREE.BoxGeometry(100, 100, 100);
+      const material = new THREE.MeshLambertMaterial({ color: 0x361D2E });
+      const cube = new THREE.Mesh(geometry, material);
+      cube.castShadow = true;
+
+      scene.add(cube);
+      // setObjects([cube]);
+    }
+
+  }, [selectedObject, objects]);
+
+
+  // Если сцена не загружена, показать спин
+  if (!sceneReady) {
+    return <Spin
+      style={{
+        width: '100%',
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'fixed'
+      }}
+      indicator={
+        <LoadingOutlined
+          style={{
+            fontSize: 48,
+          }}
+          spin
+        />
+      }
+    />;
+  }
+
+  // меню
   return (
-    <Layout style={{ height: '100vh' }}>
+    <Layout style={{ height: '100vh', position: 'fixed' }}>
       <Sider style={{ position: 'fixed' }}>
         <Menu
           mode="vertical"
@@ -105,22 +116,11 @@ const App = () => {
           defaultSelectedKeys={['1']}
           theme="dark"
           items={items}
-          style={{ width: '200px'}}
+          style={{ width: '200px' }}
         />
       </Sider>
-      <Layout>
-        <Content>
-          <ThreeJSScene 
-          updateObjects={updateObjects} 
-          sceneContainerRef={sceneContainerRef}
-          initialized={initialized}
-          sceneRef={sceneRef}
-        setInitialized={setInitialized}
-          />
-        </Content>
-      </Layout>
     </Layout>
-  );
+  );;
 };
 
 export default App;
