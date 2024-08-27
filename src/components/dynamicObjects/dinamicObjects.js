@@ -57,9 +57,9 @@ export function createBasic123Objects(environmentTexture) {
   const material2 = new THREE.MeshPhysicalMaterial({
     color: 0x00ffff,
     opacity: 0.1, // Уменьшаем непрозрачность
-    transmission: 0.5, // Увеличиваем прозрачность
+    transmission: 0.9, // Увеличиваем прозрачность
     ior: 1.5,
-    roughness: 0.5, // Высокая шероховатость для матового эффекта
+    roughness: 0.2, // шероховатость для матового эффекта
     metalness: 0.0, // Отсутствие металлического блеска
     clearcoat: 0.0, // Отсутствие прозрачного верхнего слоя
     clearcoatRoughness: 0.2 // Шероховатость прозрачного слоя

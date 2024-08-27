@@ -13,3 +13,9 @@ gh-pages: https://anastasy-ya.github.io/three_js_examples/
 
 4 пункт требует доработки: функция changeSizeAsDistance производит все необходимые расчеты 
 и возвращает измененный массив мешей. Их необходимо встроить в сцену.
+
+![1](screenshots/Screenshot_1.jpg)
+<br>
+![2](screenshots/Screenshot_2.jpg)
+<br>
+![3](screenshots/Screenshot_3.jpg)
