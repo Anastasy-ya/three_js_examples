@@ -2,26 +2,27 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Layout, Menu, Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { initScene } from '../ThreeJSScene/ThreeJSScene';
-import { createBasic1Objects } from '../basic1/Basic1Objects';
+import { createBasic123Objects, createBasic4Objects } from '../dynamicObjects/dinamicObjects';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
-import { handleCubeClick, createDecals, createLineToCentresOfGeometry } from '../basic1/Basic1Functions';
+import { handleCubeClick, createDecals, createLineToCentresOfGeometry, changeSizeAsDistance } from '../dynamicObjects/dinamicFunctions';
 
 const { Sider } = Layout;
 
 // значения клавиш меню
 const items = [
+  { key: '0', label: 'Free scene' },
   { key: '1', label: 'Basic 1' },
   { key: '2', label: 'Basic 2' },
   { key: '3', label: 'Basic 3' },
+  { key: '4', label: 'Basic 4' },
 ];
 
 const App = () => {
-  const [selectedObject, setSelectedObject] = useState(
-    // JSON.parse(localStorage.getItem("selectedObject")) || 
-    '1'); //записать его в локал сторадж заразу
+  const [selectedObject, setSelectedObject] = useState('0');
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
+  const [changedObjs, setChangedObjs] = useState(null);// для обновленных после использования функции объектов (base4)
 
   useEffect(() => {
     // инициализация сцены
@@ -82,37 +83,27 @@ const App = () => {
     while (scene.children.length > 0) {
       scene.remove(scene.children[0]);
     }
+    let createdObjects = []
 
     // Выбираем объекты для сцены на основе selectedObject
-    if (selectedObject === '1' || selectedObject === '2' || selectedObject === '3' || selectedObject === '4') {
+    if (selectedObject === '1' || selectedObject === '2' || selectedObject === '3') {
 
-      const createdObjects = createBasic1Objects(scene.environment);
+      createdObjects = createBasic123Objects(scene.environment);
       // Добавляем переданные объекты в сцену
-      createdObjects.forEach(obj => scene.add(obj));
+      
+    } else if (selectedObject === '4') {
 
-    } else if (selectedObject === '5') {
-      // console.log(selectedObject)
-
-      const createdObjects = createBasic1Objects(scene.environment);
-      // Объекты не меняются
-      createdObjects.forEach(obj => scene.add(obj));
-
-    } else if (selectedObject === '6') {
-
-      // объекты для третьей сцены
-
-    }
-
-  }, [selectedObject]);
-
-  // обработка клика
-  useEffect(() => {
-    window.addEventListener('click', onClick);
-    return () => {
-      window.removeEventListener('click', onClick);
+      // объекты изменены т.к. ExtrudeGeometry требует особого подхода
+      // объекты создаются либо из измененных, либо из первоначальных
+      createdObjects = changedObjs || createBasic4Objects();
+      console.log(createdObjects[0].scale, createdObjects[1].scale, 'код отрабатывает как надо и размеры второго меша меняются, почему он не добавляется в сцену??????')
     };
-  }, [selectedObject]);
 
+    createdObjects.forEach(obj => scene.add(obj));
+
+  }, [selectedObject, changedObjs]);
+
+  // обработка клика и вызов последующей функции, определяемой выбранным пунктом меню
   const onClick = (event) => {
     if (sceneParamsRef.current) {
       const { scene, camera } = sceneParamsRef.current;
@@ -139,29 +130,30 @@ const App = () => {
       if (intersects.length > 0) {
         const clickedObject = intersects[0].object; // Получаем объект, на который кликнули первым
 
-        if ( clickedObject instanceof THREE.Object3D ) { // проверка является ли это Object3D
+        if (clickedObject instanceof THREE.Object3D) { // проверка является ли это Object3D
 
-          // selectedObject === '2' ? handleCubeClick(clickedObject) :
-          // selectedObject === '1' ? (  // передан первый эл массива с информацией о пересечениях
-          //   createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0])) // если клик попадет по грани, createDecals вернет null
-          // ) :
-          // selectedObject === '3' ? console.log() :
-          // selectedObject === '4' ? console.log() :
-          // selectedObject === '5' ? console.log() :
-          // selectedObject === '6' ? console.log() : console.log();
-          console.log(selectedObject, 'вторая проверка selectedObject перед выбором функ')
-          if (selectedObject === '3') {
-            console.log('clicked 3')
-            handleCubeClick(clickedObject);
+          if (selectedObject === '0') {
+
+            // пустая сцена
+
+          } else if (selectedObject === '1') {
+
+            handleCubeClick(clickedObject); // функция изменения размера, цвета, поворота по клику
+
           } else if (selectedObject === '2') {
-            console.log('clicked 2')
+
             // передан первый эл массива с информацией о пересечениях
             // если клик попадет по грани, createDecals вернет null
-            createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0])) 
+            createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0]))
 
-          } else if (selectedObject === '1') { //TODO поменять значения обратно
-            console.log('clicked 1');
+          } else if (selectedObject === '3') {
+
+            // лучи от клика к центру фигуры
             createDecals(intersects[0]) !== null && scene.add(createLineToCentresOfGeometry(intersects[0]));
+
+          } else if (selectedObject === '4') {
+            // Получаем массив измененных кубов и добавляем в стейт
+            setChangedObjs(changeSizeAsDistance(intersects[0], scene));
           } else {
             console.log('Функция для другого пункта меню');
           }
@@ -171,7 +163,14 @@ const App = () => {
     }
   };
 
-
+  // обработка клика
+  useEffect(() => {
+    window.addEventListener('click', onClick);
+    return () => {
+      window.removeEventListener('click', onClick);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedObject, changedObjs]);
 
   // Если сцена не загружена, показать спин
   if (!sceneReady) {
@@ -202,7 +201,6 @@ const App = () => {
         <Menu
           mode="vertical"
           onClick={(e) => {
-            console.log(e.key, 'значение выбранной клавиши записывается в SelectedObject')
             setSelectedObject(e.key)
           }}
           selectedKeys={selectedObject}
