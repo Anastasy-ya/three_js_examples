@@ -101,7 +101,7 @@ export function changeSizeAsDistance(intersection, scene) {
   // Определяем второй куб (предполагается, что он один из объектов сцены)
   const secondCube = scene.children.find(obj => obj !== clickedObject && obj.isMesh);
 
-  console.log(secondCube, 'secondCube')
+  // console.log(secondCube, 'secondCube')
 
   if (secondCube) {
     console.log('запущена функция изменения размера');
@@ -111,10 +111,10 @@ export function changeSizeAsDistance(intersection, scene) {
     // Пересчитываем boundingBox для правильного отображения (если это требуется)
     secondCube.updateMatrixWorld();
 
-    // Возвращаем второй куб и, возможно, декаль
-    return [clickedObject, secondCube];
-  } else {
-    console.log('Second cube not found.');
-    return null;
+    // Возвращаем второй куб
+    //   return [clickedObject, secondCube];
+    // } else {
+    //   console.log('Second cube not found.');
+    //   return null;
   }
 }

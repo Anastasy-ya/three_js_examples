@@ -6,23 +6,16 @@ import { createBasic123Objects, createBasic4Objects } from '../dynamicObjects/di
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
 import { handleCubeClick, createDecals, createLineToCentresOfGeometry, changeSizeAsDistance } from '../dynamicObjects/dinamicFunctions';
+import { handleResize } from '../ThreeJSScene/handleResize';
+import { menuItems } from '../constants';
 
 const { Sider } = Layout;
 
-// значения клавиш меню
-const items = [
-  { key: '0', label: 'Free scene' },
-  { key: '1', label: 'Basic 1' },
-  { key: '2', label: 'Basic 2' },
-  { key: '3', label: 'Basic 3' },
-  { key: '4', label: 'Basic 4' },
-];
-
 const App = () => {
-  const [selectedObject, setSelectedObject] = useState('0');
+  const [selectedObject, setSelectedObject] = useState('0'); // выбранная клавиша
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
-  const [changedObjs, setChangedObjs] = useState(null);// для обновленных после использования функции объектов (base4)
+  // const [changedObjs, setChangedObjs] = useState(null);// для обновленных после использования функции объектов (base4)
 
   useEffect(() => {
     // инициализация сцены
@@ -36,46 +29,24 @@ const App = () => {
     const animate = () => {
       requestAnimationFrame(animate);
       controls.update();
-      renderer.render(sceneParamsRef.current.scene, sceneParamsRef.current.camera);
-      // console.log('произошел перерендер')
+      renderer.render(scene, camera);
       setSceneReady(true);
     };
 
     animate();
 
-    
+    window.addEventListener('click', onClick);
     window.addEventListener('resize', handleResize);
-    handleResize();
+    handleResize(sceneParamsRef);
 
     return () => {
       document.body.removeChild(renderer.domElement);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('click', onClick);
     };
-  }, []);
+  }, [selectedObject]);
 
-  // функция, адаптирующая сцену под размер экрана
-  const handleResize = () => {
-    const { camera, renderer } = sceneParamsRef.current || {};
 
-    if (camera && renderer) {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-
-      // задержка срабатывания для предотвращения слишком частых срабатываний
-      (function throttle() {
-        setTimeout(() => {
-
-          renderer.setSize(width, height);
-          camera.aspect = width / height;
-          camera.updateProjectionMatrix();
-
-        }, 500);
-      }())
-
-    } else {
-      console.log('No sceneParams');
-    }
-  };
 
   useEffect(() => {
     console.log('сработал юзэффект для добавления новых объектову на сцену')
@@ -96,19 +67,21 @@ const App = () => {
 
       createdObjects = createBasic123Objects(scene.environment);
       // Добавляем переданные объекты в сцену
-      
+
     } else if (selectedObject === '4') {
 
       // объекты изменены т.к. ExtrudeGeometry требует особого подхода
       // объекты создаются либо из измененных, либо из первоначальных
-      createdObjects = changedObjs || createBasic4Objects();
-      console.log(createdObjects[0].scale, createdObjects[1].scale, 'код отрабатывает как надо и размеры второго меша меняются, почему он не добавляется в сцену??????')
+      createdObjects = createBasic4Objects();
+      // console.log(createdObjects[0].scale, createdObjects[1].scale, 'код отрабатывает как надо и размеры второго меша меняются, почему он не добавляется в сцену??????')
     };
     console.log('добавление в сцену объектов:', createdObjects)
     createdObjects.forEach(obj => scene.add(obj));
     //для 4 пункта нет смысла удалять все объекты и нужно перерендерить сцену после обновления объектов(но это не точно)
 
-  }, [selectedObject, changedObjs]);
+  }, [selectedObject, sceneParamsRef]);
+
+
 
   // обработка клика и вызов последующей функции, определяемой выбранным пунктом меню
   const onClick = (event) => {
@@ -136,6 +109,7 @@ const App = () => {
 
       if (intersects.length > 0) {
         const clickedObject = intersects[0].object; // Получаем объект, на который кликнули первым
+        console.log('кликнут', clickedObject)
 
         if (clickedObject instanceof THREE.Object3D) { // проверка является ли это Object3D
 
@@ -160,7 +134,8 @@ const App = () => {
 
           } else if (selectedObject === '4') {
             // Получаем массив измененных кубов и добавляем в стейт
-            setChangedObjs(changeSizeAsDistance(intersects[0], scene));
+            changeSizeAsDistance(intersects[0], scene);
+            console.log('отработала ф-я изменения размера, актуальная сцена:', sceneParamsRef.current.scene.children)
           } else {
             console.log('Функция для другого пункта меню');
           }
@@ -169,15 +144,6 @@ const App = () => {
       }
     }
   };
-
-  // обработка клика
-  useEffect(() => {
-    window.addEventListener('click', onClick);
-    return () => {
-      window.removeEventListener('click', onClick);
-    };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedObject, changedObjs]);
 
   // Если сцена не загружена, показать спин
   if (!sceneReady) {
@@ -212,7 +178,7 @@ const App = () => {
           }}
           selectedKeys={selectedObject}
           theme="dark"
-          items={items}
+          items={menuItems}
           style={{ width: '200px' }}
         />
       </Sider>
