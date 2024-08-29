@@ -27,43 +27,23 @@ const App = () => {
   useEffect(() => {
     // инициализация сцены
     const { scene, camera, renderer } = initScene();
+    console.log('сцена инициирована')
     const controls = new OrbitControls(camera, renderer.domElement);
 
     sceneParamsRef.current = { scene, camera, renderer, controls };
+    console.log(sceneParamsRef.current, 'сцена записана в sceneParamsRef.current')
 
     const animate = () => {
       requestAnimationFrame(animate);
       controls.update();
-      renderer.render(scene, camera);
+      renderer.render(sceneParamsRef.current.scene, sceneParamsRef.current.camera);
+      // console.log('произошел перерендер')
       setSceneReady(true);
     };
 
     animate();
 
-    // функция, адаптирующая сцену под размер экрана
-    const handleResize = () => {
-      const { camera, renderer } = sceneParamsRef.current || {};
-
-      if (camera && renderer) {
-        const width = window.innerWidth;
-        const height = window.innerHeight;
-
-        // задержка срабатывания для предотвращения слишком частых срабатываний
-        (function throttle() {
-          setTimeout(() => {
-
-            renderer.setSize(width, height);
-            camera.aspect = width / height;
-            camera.updateProjectionMatrix();
-
-          }, 500);
-        }())
-
-      } else {
-        console.log('No sceneParams');
-      }
-    };
-
+    
     window.addEventListener('resize', handleResize);
     handleResize();
 
@@ -73,13 +53,39 @@ const App = () => {
     };
   }, []);
 
+  // функция, адаптирующая сцену под размер экрана
+  const handleResize = () => {
+    const { camera, renderer } = sceneParamsRef.current || {};
+
+    if (camera && renderer) {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      // задержка срабатывания для предотвращения слишком частых срабатываний
+      (function throttle() {
+        setTimeout(() => {
+
+          renderer.setSize(width, height);
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+
+        }, 500);
+      }())
+
+    } else {
+      console.log('No sceneParams');
+    }
+  };
+
   useEffect(() => {
+    console.log('сработал юзэффект для добавления новых объектову на сцену')
     // удаление старых мешей добавление новых
     const { scene } = sceneParamsRef.current || {};
 
     if (!scene) return; // Ждём пока сцена инициализируется
 
     // Удаляем все объекты из сцены. Важно: не использовать для сложных сцен с освещением, хэлперами и проч
+    // попробовать Object.keys(scene.children).forEach(key => scene.remove(scene.children[key]));
     while (scene.children.length > 0) {
       scene.remove(scene.children[0]);
     }
@@ -98,8 +104,9 @@ const App = () => {
       createdObjects = changedObjs || createBasic4Objects();
       console.log(createdObjects[0].scale, createdObjects[1].scale, 'код отрабатывает как надо и размеры второго меша меняются, почему он не добавляется в сцену??????')
     };
-
+    console.log('добавление в сцену объектов:', createdObjects)
     createdObjects.forEach(obj => scene.add(obj));
+    //для 4 пункта нет смысла удалять все объекты и нужно перерендерить сцену после обновления объектов(но это не точно)
 
   }, [selectedObject, changedObjs]);
 
