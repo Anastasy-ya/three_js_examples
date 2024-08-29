@@ -83,10 +83,9 @@ export function createLineToCentresOfGeometry(intersection) {
 }
 
 // Basic 4
-export function changeSizeAsDistance(intersection, scene) {
+export function changeSizeAsDistance(intersection, scene, setIsUpdated) {
   const clickedObject = intersection.object; // Получаем объект, по которому кликнули
 
-  //грань объекта и вектор, перпендикулярный к поверхности грани в точке пересечения
   if (!intersection.face || !intersection.face.normal) {
     console.log('Intersection does not have a valid face normal.');
     return null;
@@ -101,20 +100,17 @@ export function changeSizeAsDistance(intersection, scene) {
   // Определяем второй куб (предполагается, что он один из объектов сцены)
   const secondCube = scene.children.find(obj => obj !== clickedObject && obj.isMesh);
 
-  // console.log(secondCube, 'secondCube')
-
   if (secondCube) {
     console.log('запущена функция изменения размера');
     // Устанавливаем размеры второго куба равными расстоянию
-    // secondCube.uuid = '245ee52b-cca9-4f50-896a-da1fb6758494';//проверим, что обновление не происходит из-за одинакового uuid
     secondCube.scale.set(distance, distance, distance);
     // Пересчитываем boundingBox для правильного отображения (если это требуется)
     secondCube.updateMatrixWorld();
-
-    // Возвращаем второй куб
-    //   return [clickedObject, secondCube];
-    // } else {
-    //   console.log('Second cube not found.');
-    //   return null;
+    setIsUpdated(true)
+    // Возвращаем второй куб и, возможно, декаль
+    // return [clickedObject, secondCube];//
+  } else {
+    console.log('Second cube not found.');
+    return null;
   }
 }

@@ -12,19 +12,17 @@ import { menuItems } from '../constants';
 const { Sider } = Layout;
 
 const App = () => {
-  const [selectedObject, setSelectedObject] = useState('0'); // выбранная клавиша
+  const [selectedObject, setSelectedObject] = useState('0');
   const [sceneReady, setSceneReady] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false);
   const sceneParamsRef = useRef(null);
-  // const [changedObjs, setChangedObjs] = useState(null);// для обновленных после использования функции объектов (base4)
 
   useEffect(() => {
     // инициализация сцены
     const { scene, camera, renderer } = initScene();
-    console.log('сцена инициирована')
     const controls = new OrbitControls(camera, renderer.domElement);
 
     sceneParamsRef.current = { scene, camera, renderer, controls };
-    console.log(sceneParamsRef.current, 'сцена записана в sceneParamsRef.current')
 
     const animate = () => {
       requestAnimationFrame(animate);
@@ -35,31 +33,57 @@ const App = () => {
 
     animate();
 
-    window.addEventListener('click', onClick);
-    window.addEventListener('resize', handleResize);
+    window.addEventListener('resize', () => handleResize(sceneParamsRef));
     handleResize(sceneParamsRef);
 
     return () => {
       document.body.removeChild(renderer.domElement);
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('click', onClick);
+      window.removeEventListener('resize', () => handleResize(sceneParamsRef));
     };
-  }, [selectedObject]);
+  }, []);
 
+  console.log(sceneParamsRef.current, 'сцена')
 
+  // функция, адаптирующая сцену под размер экрана
+  // function handleResize(sceneParamsRef) {
+  //   const { camera, renderer } = sceneParamsRef.current || {};
+
+  //   if (camera && renderer) {
+  //     const width = window.innerWidth;
+  //     const height = window.innerHeight;
+
+  //     // задержка срабатывания для предотвращения слишком частых срабатываний
+  //     (function throttle() {
+  //       setTimeout(() => {
+
+  //         renderer.setSize(width, height);
+  //         camera.aspect = width / height;
+  //         camera.updateProjectionMatrix();
+
+  //       }, 500);
+  //     }())
+
+  //   } else {
+  //     console.log('No sceneParams');
+  //   }
+  // };
+
+  function deleteSceneObjects(scene) {
+    while (scene.children.length > 0) {
+      scene.remove(scene.children[0]);
+    }
+    console.log('удаление объектов сцены')
+  }
 
   useEffect(() => {
-    console.log('сработал юзэффект для добавления новых объектову на сцену')
     // удаление старых мешей добавление новых
     const { scene } = sceneParamsRef.current || {};
 
     if (!scene) return; // Ждём пока сцена инициализируется
 
     // Удаляем все объекты из сцены. Важно: не использовать для сложных сцен с освещением, хэлперами и проч
-    // попробовать Object.keys(scene.children).forEach(key => scene.remove(scene.children[key]));
-    while (scene.children.length > 0) {
-      scene.remove(scene.children[0]);
-    }
+    !isUpdated && deleteSceneObjects(scene);//удаление не работает при обновлении
+
     let createdObjects = []
 
     // Выбираем объекты для сцены на основе selectedObject
@@ -75,16 +99,20 @@ const App = () => {
       createdObjects = createBasic4Objects();
       // console.log(createdObjects[0].scale, createdObjects[1].scale, 'код отрабатывает как надо и размеры второго меша меняются, почему он не добавляется в сцену??????')
     };
-    console.log('добавление в сцену объектов:', createdObjects)
-    createdObjects.forEach(obj => scene.add(obj));
-    //для 4 пункта нет смысла удалять все объекты и нужно перерендерить сцену после обновления объектов(но это не точно)
 
-  }, [selectedObject, sceneParamsRef]);
+    createdObjects.forEach(obj => {
+      scene.add(obj)
+      console.log('в сцену добавлен ', obj)
+    });
 
+    //changedObjs не нужен в зависимостях тк он вызывает ненужное удаление объектов при их изменении
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedObject]);
 
 
   // обработка клика и вызов последующей функции, определяемой выбранным пунктом меню
   const onClick = (event) => {
+    console.log('сработал онклик')
     if (sceneParamsRef.current) {
       const { scene, camera } = sceneParamsRef.current;
       const raycaster = new THREE.Raycaster();
@@ -109,7 +137,6 @@ const App = () => {
 
       if (intersects.length > 0) {
         const clickedObject = intersects[0].object; // Получаем объект, на который кликнули первым
-        console.log('кликнут', clickedObject)
 
         if (clickedObject instanceof THREE.Object3D) { // проверка является ли это Object3D
 
@@ -134,8 +161,7 @@ const App = () => {
 
           } else if (selectedObject === '4') {
             // Получаем массив измененных кубов и добавляем в стейт
-            changeSizeAsDistance(intersects[0], scene);
-            console.log('отработала ф-я изменения размера, актуальная сцена:', sceneParamsRef.current.scene.children)
+            changeSizeAsDistance(intersects[0], scene, setIsUpdated);
           } else {
             console.log('Функция для другого пункта меню');
           }
@@ -144,6 +170,16 @@ const App = () => {
       }
     }
   };
+
+  // обработка клика
+  useEffect(() => {
+    window.addEventListener('click', onClick);
+    return () => {
+      window.removeEventListener('click', onClick);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // зависимости не удалять
+  }, [selectedObject]);
 
   // Если сцена не загружена, показать спин
   if (!sceneReady) {
