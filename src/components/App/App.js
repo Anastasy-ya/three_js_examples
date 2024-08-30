@@ -2,10 +2,10 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Layout, Menu, Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { initScene } from '../ThreeJSScene/ThreeJSScene';
-import { createBasic123Objects, createBasic4Objects } from '../dynamicObjects/dinamicObjects';
+import { createBasic123Objects, createBasic4Objects } from '../dynamicEntities/dinamicObjects';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
-import { handleCubeClick, createDecals, createLineToCentresOfGeometry, changeSizeAsDistance } from '../dynamicObjects/dinamicFunctions';
+import { handleCubeClick, createDecals, createLineToCentresOfGeometry, changeSizeAsDistance } from '../dynamicEntities/dinamicFunctions';
 import { handleResize } from '../ThreeJSScene/handleResize';
 import { menuItems } from '../constants';
 
@@ -42,37 +42,10 @@ const App = () => {
     };
   }, []);
 
-  console.log(sceneParamsRef.current, 'сцена')
-
-  // функция, адаптирующая сцену под размер экрана
-  // function handleResize(sceneParamsRef) {
-  //   const { camera, renderer } = sceneParamsRef.current || {};
-
-  //   if (camera && renderer) {
-  //     const width = window.innerWidth;
-  //     const height = window.innerHeight;
-
-  //     // задержка срабатывания для предотвращения слишком частых срабатываний
-  //     (function throttle() {
-  //       setTimeout(() => {
-
-  //         renderer.setSize(width, height);
-  //         camera.aspect = width / height;
-  //         camera.updateProjectionMatrix();
-
-  //       }, 500);
-  //     }())
-
-  //   } else {
-  //     console.log('No sceneParams');
-  //   }
-  // };
-
   function deleteSceneObjects(scene) {
     while (scene.children.length > 0) {
       scene.remove(scene.children[0]);
     }
-    console.log('удаление объектов сцены')
   }
 
   useEffect(() => {
@@ -95,14 +68,11 @@ const App = () => {
     } else if (selectedObject === '4') {
 
       // объекты изменены т.к. ExtrudeGeometry требует особого подхода
-      // объекты создаются либо из измененных, либо из первоначальных
       createdObjects = createBasic4Objects();
-      // console.log(createdObjects[0].scale, createdObjects[1].scale, 'код отрабатывает как надо и размеры второго меша меняются, почему он не добавляется в сцену??????')
     };
 
     createdObjects.forEach(obj => {
       scene.add(obj)
-      console.log('в сцену добавлен ', obj)
     });
 
     //changedObjs не нужен в зависимостях тк он вызывает ненужное удаление объектов при их изменении
@@ -112,7 +82,6 @@ const App = () => {
 
   // обработка клика и вызов последующей функции, определяемой выбранным пунктом меню
   const onClick = (event) => {
-    console.log('сработал онклик')
     if (sceneParamsRef.current) {
       const { scene, camera } = sceneParamsRef.current;
       const raycaster = new THREE.Raycaster();
@@ -146,7 +115,7 @@ const App = () => {
 
           } else if (selectedObject === '1') {
 
-            handleCubeClick(clickedObject); // функция изменения размера, цвета, поворота по клику
+            handleCubeClick(clickedObject);
 
           } else if (selectedObject === '2') {
 
@@ -160,7 +129,7 @@ const App = () => {
             createDecals(intersects[0]) !== null && scene.add(createLineToCentresOfGeometry(intersects[0]));
 
           } else if (selectedObject === '4') {
-            // Получаем массив измененных кубов и добавляем в стейт
+            
             changeSizeAsDistance(intersects[0], scene, setIsUpdated);
           } else {
             console.log('Функция для другого пункта меню');
@@ -170,6 +139,20 @@ const App = () => {
       }
     }
   };
+
+  // Функция для вывода информации о сцене с задержкой TODO удалить по завершении
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (sceneParamsRef.current) {
+        const { scene } = sceneParamsRef.current;
+        scene.children.forEach(obj => {
+          console.log('Object in scene:', obj.name, obj.scale);
+        });
+      }
+    }, 15000);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   // обработка клика
   useEffect(() => {

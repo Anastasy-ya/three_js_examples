@@ -82,7 +82,6 @@ export function createLineToCentresOfGeometry(intersection) {
   return createLine(intersection.point, object.position);
 }
 
-// Basic 4
 export function changeSizeAsDistance(intersection, scene, setIsUpdated) {
   const clickedObject = intersection.object; // Получаем объект, по которому кликнули
 
@@ -94,21 +93,28 @@ export function changeSizeAsDistance(intersection, scene, setIsUpdated) {
   // Получаем центр кликнутого объекта
   const cubeCenter = clickedObject.position;
 
-  // Вычисляем расстояние от точки клика до центра объекта
   const distance = intersection.point.distanceTo(cubeCenter);
-
-  // Определяем второй куб (предполагается, что он один из объектов сцены)
+  
   const secondCube = scene.children.find(obj => obj !== clickedObject && obj.isMesh);
 
   if (secondCube) {
-    console.log('запущена функция изменения размера');
-    // Устанавливаем размеры второго куба равными расстоянию
-    secondCube.scale.set(distance, distance, distance);
-    // Пересчитываем boundingBox для правильного отображения (если это требуется)
-    secondCube.updateMatrixWorld();
-    setIsUpdated(true)
-    // Возвращаем второй куб и, возможно, декаль
-    // return [clickedObject, secondCube];//
+
+    //узнаем старые размеры объекта
+    const box = new THREE.Box3();
+    box.setFromObject(secondCube);
+    const size = new THREE.Vector3();
+    size.subVectors(box.max, box.min);
+
+    // решение для равносторонней фигуры
+    // const scaleFactor = distance / size.x;
+    // const newSize = size.multiplyScalar(scaleFactor);
+
+    // решение для фигуры с отличающимися x y z
+    const length = size.length();
+    const scaleFactor = distance / length;
+
+    secondCube.scale.set(scaleFactor, scaleFactor, scaleFactor);
+
   } else {
     console.log('Second cube not found.');
     return null;

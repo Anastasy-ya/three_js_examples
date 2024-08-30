@@ -79,7 +79,16 @@ export function createBasic123Objects(environmentTexture) {
 export function createBasic4Objects() {
   const geometry = new THREE.BoxGeometry(100, 100, 100);
 
-  const material1 = new THREE.MeshPhysicalMaterial({ color: 0x00ff00 });
+  const material1 = new THREE.MeshPhysicalMaterial({
+    color: 0x00ffff,
+    opacity: 0.1,
+    transmission: 0.9,
+    ior: 1.5,
+    roughness: 0.2,
+    metalness: 0.0,
+    clearcoat: 0.0,
+    clearcoatRoughness: 0.2
+  });
   const cube1 = new THREE.Mesh(geometry, material1);
   cube1.name = 'cube1';
   cube1.position.x = -150;
