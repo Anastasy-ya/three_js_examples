@@ -1,10 +1,6 @@
 import * as THREE from 'three';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
-// import { RGBELoader } from 'three/examples/jsm/loaders/RGBELoader.js';
 import img from './industrial_sunset_puresky_4k.exr';
-
-// import * as THREE from 'three';
-// import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 
 export function initScene() {
   const scene = new THREE.Scene();

@@ -78,6 +78,8 @@ export function createBasic123Objects(environmentTexture) {
 // Объекты для 4 пункта меню
 export function createBasic4Objects() {
   const geometry = new THREE.BoxGeometry(100, 100, 100);
+  //создается копия геометрии чтобы кубы имели разные geometry.attributes.position
+  const geometry2 = geometry.clone();
 
   const material1 = new THREE.MeshPhysicalMaterial({
     color: 0x00ffff,
@@ -90,12 +92,12 @@ export function createBasic4Objects() {
     clearcoatRoughness: 0.2
   });
   const cube1 = new THREE.Mesh(geometry, material1);
-  cube1.name = 'cube1';
+  cube1.name = 'cube1blue';
   cube1.position.x = -150;
 
   const material2 = new THREE.MeshPhysicalMaterial({ color: 0x0000ff });
-  const cube2 = new THREE.Mesh(geometry, material2);
-  cube2.name = 'cube2';
+  const cube2 = new THREE.Mesh(geometry2, material2);
+  cube2.name = 'cube2green';
   cube2.position.x = 150;
 
   const cubes = [cube1, cube2];

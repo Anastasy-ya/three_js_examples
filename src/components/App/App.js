@@ -12,9 +12,9 @@ import { menuItems } from '../constants';
 const { Sider } = Layout;
 
 const App = () => {
-  const [selectedObject, setSelectedObject] = useState('0');
+  const [selectedObject, setSelectedObject] = useState('0'); //пункт меню
   const [sceneReady, setSceneReady] = useState(false);
-  const [isUpdated, setIsUpdated] = useState(false);
+  const [isUpdated, setIsUpdated] = useState(false); // стейт для проверки перед удалением объектов
   const sceneParamsRef = useRef(null);
 
   useEffect(() => {
@@ -141,18 +141,18 @@ const App = () => {
   };
 
   // Функция для вывода информации о сцене с задержкой TODO удалить по завершении
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      if (sceneParamsRef.current) {
-        const { scene } = sceneParamsRef.current;
-        scene.children.forEach(obj => {
-          console.log('Object in scene:', obj.name, obj.scale);
-        });
-      }
-    }, 15000);
+  // useEffect(() => {
+  //   const intervalId = setInterval(() => {
+  //     if (sceneParamsRef.current) {
+  //       const { scene } = sceneParamsRef.current;
+  //       scene.children.forEach(obj => {
+  //         console.log('Object in scene:', obj.name, obj.scale);
+  //       });
+  //     }
+  //   }, 15000);
 
-    return () => clearInterval(intervalId);
-  }, []);
+  //   return () => clearInterval(intervalId);
+  // }, []);
 
   // обработка клика
   useEffect(() => {

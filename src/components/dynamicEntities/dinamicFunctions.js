@@ -82,41 +82,58 @@ export function createLineToCentresOfGeometry(intersection) {
   return createLine(intersection.point, object.position);
 }
 
+// Basic 4
 export function changeSizeAsDistance(intersection, scene, setIsUpdated) {
-  const clickedObject = intersection.object; // Получаем объект, по которому кликнули
+  const clickedObject = intersection.object;
 
   if (!intersection.face || !intersection.face.normal) {
     console.log('Intersection does not have a valid face normal.');
     return null;
   }
 
-  // Получаем центр кликнутого объекта
   const cubeCenter = clickedObject.position;
-
   const distance = intersection.point.distanceTo(cubeCenter);
-  
+
   const secondCube = scene.children.find(obj => obj !== clickedObject && obj.isMesh);
 
-  if (secondCube) {
-
-    //узнаем старые размеры объекта
-    const box = new THREE.Box3();
-    box.setFromObject(secondCube);
-    const size = new THREE.Vector3();
-    size.subVectors(box.max, box.min);
-
-    // решение для равносторонней фигуры
-    // const scaleFactor = distance / size.x;
-    // const newSize = size.multiplyScalar(scaleFactor);
-
-    // решение для фигуры с отличающимися x y z
-    const length = size.length();
-    const scaleFactor = distance / length;
-
-    secondCube.scale.set(scaleFactor, scaleFactor, scaleFactor);
-
-  } else {
-    console.log('Second cube not found.');
+  if (!secondCube) {
+    console.log('Second cube not found or same as clicked object.');
     return null;
+  }
+
+  console.log(distance, 'distance');
+
+  // Узнаем старые размеры объекта
+  const box = new THREE.Box3().setFromObject(secondCube);
+  const size = new THREE.Vector3().subVectors(box.max, box.min);
+  console.log(size, 'старый размер');
+
+  if (secondCube.geometry.isBufferGeometry) {
+    const positionAttribute = secondCube.geometry.attributes.position;
+
+    // Находим коэффициенты масштабирования для каждого измерения
+    const scaleX = size.x === 0 ? '' : distance / size.x; //проверка деления на ноль
+    const scaleY = size.y === 0 ? '' : distance / size.y;
+    const scaleZ = size.z === 0 ? '' : distance / size.z;
+
+    // Масштабирование вершин
+    for (let i = 0; i < positionAttribute.count; i++) {
+      positionAttribute.setXYZ(
+        i,
+        positionAttribute.getX(i) * scaleX,
+        positionAttribute.getY(i) * scaleY,
+        positionAttribute.getZ(i) * scaleZ
+      );
+    }
+
+    positionAttribute.needsUpdate = true;
+    secondCube.geometry.computeBoundingBox();
+
+    // Получение нового размера
+    const newBox = new THREE.Box3().setFromObject(secondCube);
+    const newSize = new THREE.Vector3().subVectors(newBox.max, newBox.min);
+    console.log(newSize, 'Новый размер');
+
+    setIsUpdated(true);
   }
 }
