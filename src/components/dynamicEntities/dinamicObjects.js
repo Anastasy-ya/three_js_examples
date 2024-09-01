@@ -75,34 +75,74 @@ export function createBasic123Objects(environmentTexture) {
   return objects;
 }
 
-// Объекты для 4 пункта меню
+class Cube {
+  constructor(x, y, z, color, name) {
+    this.geometry = new THREE.BoxGeometry(100, 100, 100);
+    // this.geometry2 = this.geometry.clone();
+    this.material = new THREE.MeshPhysicalMaterial({
+      color: color,
+      opacity: 0.1,
+      transmission: 0.9,
+      ior: 1.5,
+      roughness: 0.2,
+      metalness: 0.0,
+      clearcoat: 0.0,
+      clearcoatRoughness: 0.2
+    });
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh.position.x = x;
+    this.mesh.position.y = y;
+    this.mesh.position.z = z;
+    this.mesh.name = name;
+  }
+}
+
 export function createBasic4Objects() {
-  const geometry = new THREE.BoxGeometry(100, 100, 100);
-  //создается копия геометрии чтобы кубы имели разные geometry.attributes.position
-  const geometry2 = geometry.clone();
-
-  const material1 = new THREE.MeshPhysicalMaterial({
-    color: 0x00ffff,
-    opacity: 0.1,
-    transmission: 0.9,
-    ior: 1.5,
-    roughness: 0.2,
-    metalness: 0.0,
-    clearcoat: 0.0,
-    clearcoatRoughness: 0.2
-  });
-  const cube1 = new THREE.Mesh(geometry, material1);
-  cube1.name = 'cube1blue';
-  cube1.position.x = -150;
-
-  const material2 = new THREE.MeshPhysicalMaterial({ color: 0x0000ff });
-  const cube2 = new THREE.Mesh(geometry2, material2);
-  cube2.name = 'cube2green';
-  cube2.position.x = 150;
-
-  const cubes = [cube1, cube2];
-
+  const cubes = [];
+  // cubes.push(new Cube(-300, 0x00ffff));
+  cubes.push(new Cube(-150, 0, 0, 0x00ffff, 'box_1').mesh);
+  cubes.push(new Cube(150, 0, 0, 0xffff00, 'box_2').mesh);
   return cubes;
 }
+
+export function createBasic5Objects() {
+  const cubes = [];
+  cubes.push(new Cube(0, 0, 0, 0x00ffff, 'box_1').mesh);//blue
+  cubes.push(new Cube(100, 0, 100, 0x66cdaa, 'box_2').mesh);//green
+  cubes.push(new Cube(100, 0, 100, 0xe3256b, 'box_3').mesh);
+  return cubes;
+}
+
+///////////////////////////////////
+
+// Объекты для 4 пункта меню
+// export function createBasic4Objects() {
+//   const geometry = new THREE.BoxGeometry(100, 100, 100);
+//   //создается копия геометрии чтобы кубы имели разные geometry.attributes.position
+//   const geometry2 = geometry.clone();
+
+//   const material1 = new THREE.MeshPhysicalMaterial({
+//     color: 0x00ffff,
+//     opacity: 0.1,
+//     transmission: 0.9,
+//     ior: 1.5,
+//     roughness: 0.2,
+//     metalness: 0.0,
+//     clearcoat: 0.0,
+//     clearcoatRoughness: 0.2
+//   });
+//   const cube1 = new THREE.Mesh(geometry, material1);
+//   cube1.name = 'cube1blue';
+//   cube1.position.x = -150;
+
+//   const material2 = new THREE.MeshPhysicalMaterial({ color: 0x0000ff });
+//   const cube2 = new THREE.Mesh(geometry2, material2);
+//   cube2.name = 'cube2green';
+//   cube2.position.x = 150;
+
+//   const cubes = [cube1, cube2];
+
+//   return cubes;
+// }
 
 

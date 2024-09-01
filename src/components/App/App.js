@@ -2,19 +2,30 @@ import React, { useEffect, useState, useRef } from 'react';
 import { Layout, Menu, Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { initScene } from '../ThreeJSScene/ThreeJSScene';
-import { createBasic123Objects, createBasic4Objects } from '../dynamicEntities/dinamicObjects';
+import {
+  createBasic123Objects,
+  createBasic4Objects,
+  createBasic5Objects
+} from '../dynamicEntities/dinamicObjects.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import * as THREE from 'three';
-import { handleCubeClick, createDecals, createLineToCentresOfGeometry, changeSizeAsDistance } from '../dynamicEntities/dinamicFunctions';
+import {
+  handleCubeClick,
+  createDecals,
+  createLineToCentresOfGeometry,
+  changeSizeAsDistance,
+  makeChildren,
+  randomPosition
+} from '../dynamicEntities/dinamicFunctions';
 import { handleResize } from '../ThreeJSScene/handleResize';
 import { menuItems } from '../constants';
+
 
 const { Sider } = Layout;
 
 const App = () => {
-  const [selectedObject, setSelectedObject] = useState('0'); //пункт меню
+  const [selectedObject, setSelectedObject] = useState('5'); //пункт меню
   const [sceneReady, setSceneReady] = useState(false);
-  const [isUpdated, setIsUpdated] = useState(false); // стейт для проверки перед удалением объектов
   const sceneParamsRef = useRef(null);
 
   useEffect(() => {
@@ -48,29 +59,28 @@ const App = () => {
     }
   }
 
+  // удаление старых мешей добавление новых
   useEffect(() => {
-    // удаление старых мешей добавление новых
-    const { scene } = sceneParamsRef.current || {};
 
+    const { scene } = sceneParamsRef.current || {};
     if (!scene) return; // Ждём пока сцена инициализируется
 
     // Удаляем все объекты из сцены. Важно: не использовать для сложных сцен с освещением, хэлперами и проч
-    !isUpdated && deleteSceneObjects(scene);//удаление не работает при обновлении
+    deleteSceneObjects(scene);//удаление не работает при обновлении
 
     let createdObjects = []
 
     // Выбираем объекты для сцены на основе selectedObject
     if (selectedObject === '1' || selectedObject === '2' || selectedObject === '3') {
-
       createdObjects = createBasic123Objects(scene.environment);
-      // Добавляем переданные объекты в сцену
-
     } else if (selectedObject === '4') {
-
       // объекты изменены т.к. ExtrudeGeometry требует особого подхода
       createdObjects = createBasic4Objects();
+    } else if (selectedObject === '5') {
+      createdObjects = [makeChildren(createBasic5Objects())];
+    } else if (selectedObject === '6') {
+      // createdObjects = ;
     };
-
     createdObjects.forEach(obj => {
       scene.add(obj)
     });
@@ -107,52 +117,37 @@ const App = () => {
       if (intersects.length > 0) {
         const clickedObject = intersects[0].object; // Получаем объект, на который кликнули первым
 
-        if (clickedObject instanceof THREE.Object3D) { // проверка является ли это Object3D
+        if (clickedObject instanceof THREE.Object3D) {
 
           if (selectedObject === '0') {
-
             // пустая сцена
-
           } else if (selectedObject === '1') {
-
             handleCubeClick(clickedObject);
-
           } else if (selectedObject === '2') {
-
             // передан первый эл массива с информацией о пересечениях
             // если клик попадет по грани, createDecals вернет null
+            // функция createDecals получает объект данных первого пересечения луча с объектом сцены
+            // если этот объект существует, в сцену добавляется новый объект, 
+            //расположенный на поверхности куба
             createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0]))
-
           } else if (selectedObject === '3') {
-
             // лучи от клика к центру фигуры
+            // аналогично примеру выше, но в сцену добавляется объект, тянущийся к центру куба
             createDecals(intersects[0]) !== null && scene.add(createLineToCentresOfGeometry(intersects[0]));
-
           } else if (selectedObject === '4') {
-            
-            changeSizeAsDistance(intersects[0], scene, setIsUpdated);
-          } else {
-            console.log('Функция для другого пункта меню');
+            // функция changeSizeAsDistance получает данные 
+            //о пересечении луча с первым объектом сцены и меняет размер объектов
+            changeSizeAsDistance(intersects[0], scene);
+          } else if (selectedObject === '5') {
+            randomPosition(scene, camera);
+          } else if (selectedObject === '6') {
+            // randomPosition(scene, camera);
           }
         }
 
       }
     }
   };
-
-  // Функция для вывода информации о сцене с задержкой TODO удалить по завершении
-  // useEffect(() => {
-  //   const intervalId = setInterval(() => {
-  //     if (sceneParamsRef.current) {
-  //       const { scene } = sceneParamsRef.current;
-  //       scene.children.forEach(obj => {
-  //         console.log('Object in scene:', obj.name, obj.scale);
-  //       });
-  //     }
-  //   }, 15000);
-
-  //   return () => clearInterval(intervalId);
-  // }, []);
 
   // обработка клика
   useEffect(() => {

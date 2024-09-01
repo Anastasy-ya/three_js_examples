@@ -83,7 +83,7 @@ export function createLineToCentresOfGeometry(intersection) {
 }
 
 // Basic 4
-export function changeSizeAsDistance(intersection, scene, setIsUpdated) {
+export function changeSizeAsDistance(intersection, scene) {
   const clickedObject = intersection.object;
 
   if (!intersection.face || !intersection.face.normal) {
@@ -101,7 +101,7 @@ export function changeSizeAsDistance(intersection, scene, setIsUpdated) {
     return null;
   }
 
-  console.log(distance, 'distance');
+  console.log(distance, 'расстояние от клика до центра куба');
 
   // Узнаем старые размеры объекта
   const box = new THREE.Box3().setFromObject(secondCube);
@@ -112,9 +112,9 @@ export function changeSizeAsDistance(intersection, scene, setIsUpdated) {
     const positionAttribute = secondCube.geometry.attributes.position;
 
     // Находим коэффициенты масштабирования для каждого измерения
-    const scaleX = size.x === 0 ? '' : distance / size.x; //проверка деления на ноль
-    const scaleY = size.y === 0 ? '' : distance / size.y;
-    const scaleZ = size.z === 0 ? '' : distance / size.z;
+    const scaleX = size.x === 0 ? 0 : distance / size.x; //проверка деления на ноль
+    const scaleY = size.y === 0 ? 0 : distance / size.y;
+    const scaleZ = size.z === 0 ? 0 : distance / size.z;
 
     // Масштабирование вершин
     for (let i = 0; i < positionAttribute.count; i++) {
@@ -133,7 +133,52 @@ export function changeSizeAsDistance(intersection, scene, setIsUpdated) {
     const newBox = new THREE.Box3().setFromObject(secondCube);
     const newSize = new THREE.Vector3().subVectors(newBox.max, newBox.min);
     console.log(newSize, 'Новый размер');
-
-    setIsUpdated(true);
   }
+}
+
+// Basic 5
+export function makeChildren(cubes) {
+  let parent = cubes[0];
+
+  for (let i = 1; i < cubes.length; i++) {
+    const child = cubes[i];
+    parent.add(child);
+    parent = child; // Следующий объект становится новым родителем
+  }
+
+  return cubes[0];
+}
+
+// Функция для генерации случайного числа в заданном диапазоне
+function getRandomPosition(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+// функция для обновления позиции
+function updateCubePosition(cube, cameraPosition) {
+  cube.position.set(
+    getRandomPosition(-100, 100),
+    getRandomPosition(-100, 100),
+    getRandomPosition(-100, 100)
+  );
+  const distanceToCamera = cube.position.distanceTo(cameraPosition);
+  console.log(`Куб ${cube.name}: расстояние до камеры = ${distanceToCamera.toFixed(2)}`);
+}
+
+
+export function randomPosition(scene, camera) {
+
+  const cameraPosition = camera.position.clone();
+  console.log(cameraPosition, 'cameraPosition')
+
+  scene.traverse((object) => {
+    if (object.isMesh && object.geometry.type === 'BoxGeometry') {
+      updateCubePosition(object, cameraPosition);
+    }
+  });
+}
+
+// Advanced 1
+export function a() {
+  
 }
