@@ -1,40 +1,41 @@
 import React, { useEffect, useState, useRef } from 'react';
+import * as THREE from 'three';
 import { Layout, Menu, Spin } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { initScene } from '../ThreeJSScene/ThreeJSScene';
 import {
   createBasic123Objects,
   createBasic4Objects,
-  createBasic5Objects
-} from '../dynamicEntities/dinamicObjects.js';
+  createBasic5Objects,
+  createAdvance1Objects,
+} from '../DynamicEntities/DinamicObjects.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import * as THREE from 'three';
 import {
   handleCubeClick,
   createDecals,
   createLineToCentresOfGeometry,
   changeSizeAsDistance,
   makeChildren,
-  randomPosition
-} from '../dynamicEntities/dinamicFunctions';
-import { handleResize } from '../ThreeJSScene/handleResize';
-import { menuItems } from '../constants';
-
+  randomPosition,
+  moveSphere,
+} from '../DynamicEntities/DinamicFunctions.js';
+import { handleResize } from '../ThreeJSScene/HandleResize.js';
+import { menuItems } from '../Constants.js';
 
 const { Sider } = Layout;
 
 const App = () => {
-  const [selectedObject, setSelectedObject] = useState('5'); //пункт меню
+  const [selectedObject, setSelectedObject] = useState('0'); //пункт меню
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
 
+  // инициализация сцены
   useEffect(() => {
-    // инициализация сцены
     const { scene, camera, renderer } = initScene();
     const controls = new OrbitControls(camera, renderer.domElement);
 
     sceneParamsRef.current = { scene, camera, renderer, controls };
-
+ 
     const animate = () => {
       requestAnimationFrame(animate);
       controls.update();
@@ -79,12 +80,11 @@ const App = () => {
     } else if (selectedObject === '5') {
       createdObjects = [makeChildren(createBasic5Objects())];
     } else if (selectedObject === '6') {
-      // createdObjects = ;
+      createdObjects = createAdvance1Objects();
     };
     createdObjects.forEach(obj => {
       scene.add(obj)
     });
-
     //changedObjs не нужен в зависимостях тк он вызывает ненужное удаление объектов при их изменении
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedObject]);
@@ -98,8 +98,6 @@ const App = () => {
       const mouse = new THREE.Vector2();
 
       // Преобразуем координаты клика в нормализованные координаты устройства
-      // event.clientX и event.clientY содержат пиксельные координаты курсора 
-      // мыши относительно левого и верхнего краев
       // Пиксельные координаты делятся на ширину и высоту окна соответственно, 
       // чтобы нормализовать их в диапазоне от 0 до 1. Это означает, 
       // что положение мыши в центре окна будет иметь x = 0.5 и y = 0.5.
@@ -141,10 +139,9 @@ const App = () => {
           } else if (selectedObject === '5') {
             randomPosition(scene, camera);
           } else if (selectedObject === '6') {
-            // randomPosition(scene, camera);
+            moveSphere(intersects[0], scene);
           }
         }
-
       }
     }
   };
@@ -155,8 +152,8 @@ const App = () => {
     return () => {
       window.removeEventListener('click', onClick);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     // зависимости не удалять
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedObject]);
 
   // Если сцена не загружена, показать спин

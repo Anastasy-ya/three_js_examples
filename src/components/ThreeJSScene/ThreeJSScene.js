@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
-import img from './industrial_sunset_puresky_4k.exr';
+import img from './Industrial_sunset_puresky_4k.exr';
 
 export function initScene() {
   const scene = new THREE.Scene();
@@ -13,14 +13,7 @@ export function initScene() {
 
   const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 1, 1000);
   camera.lookAt(0, 0, 0);
-  camera.position.set(500, 100, 500);
-
-  // const ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
-  // scene.add(ambientLight);
-
-  // const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-  // directionalLight.position.set(200, 200, 100);
-  // scene.add(directionalLight);
+  camera.position.set(50, 10, 50);
 
   // Загрузка окружения .exr
   const loader = new EXRLoader();
@@ -35,19 +28,11 @@ export function initScene() {
     pmremGenerator.dispose();
 
     // Применяем окружение и фон
-    scene.background = texture;
-    scene.environment = exrCubeRenderTarget.texture;
-
-    // Запускаем рендеринг
-    animate();
+    scene.background = exrCubeRenderTarget.texture;
+    scene.environment = exrCubeRenderTarget.texture; // Используется для отражения в объектах
   });
 
-  function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-  }
-
-  return { scene, camera, renderer, };
+  return { scene, camera, renderer};
 }
 
 

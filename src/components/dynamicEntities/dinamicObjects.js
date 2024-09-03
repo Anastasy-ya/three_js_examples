@@ -26,12 +26,12 @@ function createRoundedBoxGeometry(width, height, depth, radius, smoothness) {
   return geometry;
 }
 
-// Объекты для первых трех пунктов меню
+// Объекты для первых трех пунктов меню basic1-3
 export function createBasic123Objects(environmentTexture) {
   const objects = [];
 
   // Создание геометрии с закругленными углами
-  const glassGeometry = createRoundedBoxGeometry(100, 100, 100, 10 / 3, 2); // Радиус скругления = 10, плавность = 10
+  const glassGeometry = createRoundedBoxGeometry(10, 10, 10, 2 / 3, 2); // Радиус скругления = 10, плавность = 10
 
   const glassMaterial = new THREE.MeshPhysicalMaterial({
     color: 0x00ffff,
@@ -48,11 +48,11 @@ export function createBasic123Objects(environmentTexture) {
   const glassMesh1 = new THREE.Mesh(glassGeometry, glassMaterial);
   glassMesh1.castShadow = true;
   glassMesh1.receiveShadow = true;
-  glassMesh1.position.x = -100;
+  glassMesh1.position.x = -10;
   glassMesh1.name = 'куб со скруглением граней';
 
   // Обычный куб
-  const geometry = new THREE.BoxGeometry(100, 100, 100);
+  const geometry = new THREE.BoxGeometry(10, 10, 10);
 
   const material2 = new THREE.MeshPhysicalMaterial({
     color: 0x00ffff,
@@ -67,7 +67,7 @@ export function createBasic123Objects(environmentTexture) {
   const cube2 = new THREE.Mesh(geometry, material2);
   cube2.castShadow = true;
   cube2.receiveShadow = true;
-  cube2.position.x = 100;
+  cube2.position.x = 10;
   cube2.name = 'куб';
 
   objects.push(glassMesh1, cube2);
@@ -77,8 +77,7 @@ export function createBasic123Objects(environmentTexture) {
 
 class Cube {
   constructor(x, y, z, color, name) {
-    this.geometry = new THREE.BoxGeometry(100, 100, 100);
-    // this.geometry2 = this.geometry.clone();
+    this.geometry = new THREE.BoxGeometry(10, 10, 10);
     this.material = new THREE.MeshPhysicalMaterial({
       color: color,
       opacity: 0.1,
@@ -97,52 +96,68 @@ class Cube {
   }
 }
 
+//basic4
 export function createBasic4Objects() {
   const cubes = [];
-  // cubes.push(new Cube(-300, 0x00ffff));
-  cubes.push(new Cube(-150, 0, 0, 0x00ffff, 'box_1').mesh);
-  cubes.push(new Cube(150, 0, 0, 0xffff00, 'box_2').mesh);
+  cubes.push(new Cube(-15, 0, 0, 0x00ffff, 'box_1').mesh);
+  cubes.push(new Cube(15, 0, 0, 0xffff00, 'box_2').mesh);
   return cubes;
 }
 
+//basic5
 export function createBasic5Objects() {
   const cubes = [];
   cubes.push(new Cube(0, 0, 0, 0x00ffff, 'box_1').mesh);//blue
-  cubes.push(new Cube(100, 0, 100, 0x66cdaa, 'box_2').mesh);//green
-  cubes.push(new Cube(100, 0, 100, 0xe3256b, 'box_3').mesh);
+  cubes.push(new Cube(10, 0, 10, 0x66cdaa, 'box_2').mesh);//green
+  cubes.push(new Cube(10, 0, 10, 0xe3256b, 'box_3').mesh);
   return cubes;
 }
 
-///////////////////////////////////
+class Plane {
+  constructor(color, name) {
+    this.geometry = new THREE.PlaneGeometry(8, 8);
+    this.material = new THREE.MeshPhysicalMaterial({
+      color: color,
+      opacity: 0.1,
+      transmission: 0.9,
+      ior: 1.5,
+      roughness: 0.2,
+      metalness: 0.0,
+      clearcoat: 0.0,
+      clearcoatRoughness: 0.2,
+      side: THREE.DoubleSide,
+    });
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh.name = name;
+    this.mesh.rotation.x = Math.PI / 2;
+  }
+}
+class Sphere {
+  constructor(color, name, radius = 4, widthSegments = 32, heightSegments = 32) {
+    this.geometry = new THREE.SphereGeometry(radius, widthSegments, heightSegments);
 
-// Объекты для 4 пункта меню
-// export function createBasic4Objects() {
-//   const geometry = new THREE.BoxGeometry(100, 100, 100);
-//   //создается копия геометрии чтобы кубы имели разные geometry.attributes.position
-//   const geometry2 = geometry.clone();
+    this.material = new THREE.MeshPhysicalMaterial({
+      color: color,
+      opacity: 0.1,
+      transmission: 0.9,
+      ior: 1.5,
+      roughness: 0.2,
+      metalness: 0.0,
+      clearcoat: 0.0,
+      clearcoatRoughness: 0.2,
+    });
 
-//   const material1 = new THREE.MeshPhysicalMaterial({
-//     color: 0x00ffff,
-//     opacity: 0.1,
-//     transmission: 0.9,
-//     ior: 1.5,
-//     roughness: 0.2,
-//     metalness: 0.0,
-//     clearcoat: 0.0,
-//     clearcoatRoughness: 0.2
-//   });
-//   const cube1 = new THREE.Mesh(geometry, material1);
-//   cube1.name = 'cube1blue';
-//   cube1.position.x = -150;
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh.name = name;
+  }
+}
 
-//   const material2 = new THREE.MeshPhysicalMaterial({ color: 0x0000ff });
-//   const cube2 = new THREE.Mesh(geometry2, material2);
-//   cube2.name = 'cube2green';
-//   cube2.position.x = 150;
-
-//   const cubes = [cube1, cube2];
-
-//   return cubes;
-// }
+//advanced1
+export function createAdvance1Objects() {
+  const objects = [];
+  objects.push(new Plane(0x67595e, 'plane_1').mesh);
+  objects.push(new Sphere(0xa49393, 'sphere_1').mesh);
+  return objects;
+}
 
 
