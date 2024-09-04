@@ -182,7 +182,7 @@ export function randomPosition(scene, camera) {
 function calculateIntersectionArea(circle, plane) {
   const planeWidth = plane.geometry.parameters.width;
   const halfPlaneWidth = planeWidth / 2;
-  const radius = circle.geometry.parameters.radius; // Радиус окружности
+  const radius = circle.geometry.parameters.radius;
   let intersectionArea = 0;
   const Smax = Math.PI * radius * radius;
 

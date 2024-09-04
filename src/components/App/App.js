@@ -67,7 +67,7 @@ const App = () => {
     if (!scene) return; // Ждём пока сцена инициализируется
 
     // Удаляем все объекты из сцены. Важно: не использовать для сложных сцен с освещением, хэлперами и проч
-    deleteSceneObjects(scene);//удаление не работает при обновлении
+    deleteSceneObjects(scene);
 
     let createdObjects = []
 
@@ -183,12 +183,12 @@ const App = () => {
     <Layout style={{ height: '100vh', position: 'fixed' }}>
       <Sider style={{ position: 'fixed' }}>
         <Menu
-          mode="vertical"
+          mode='vertical'
           onClick={(e) => {
             setSelectedObject(e.key)
           }}
           selectedKeys={selectedObject}
-          theme="dark"
+          theme='dark'
           items={menuItems}
           style={{ width: '200px' }}
         />
