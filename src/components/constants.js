@@ -5,5 +5,5 @@ export const menuItems = [
   { key: '3', label: 'Basic 3' },
   { key: '4', label: 'Basic 4' },
   { key: '5', label: 'Basic 5' },
-  { key: '6', label: 'Advanced 6' },
+  { key: '6', label: 'Advanced 1' },
 ];
