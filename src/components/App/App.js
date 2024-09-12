@@ -38,7 +38,7 @@ const App = () => {
     const controls = new OrbitControls(camera, renderer.domElement);
 
     sceneParamsRef.current = { scene, camera, renderer, controls };
- 
+
     const animate = () => {
       requestAnimationFrame(animate);
       controls.update();
@@ -89,7 +89,7 @@ const App = () => {
     } else if (selectedObject === '8') {
       //TODO вытащить в переменную
       sceneParamsRef.current.camera.position.set(2000, 300, -500);
-      createdObjects = createAdvance3Objects();
+      createdObjects = createAdvance3Objects(2048, 128, true); //размер плоскости, радиус шестиугольника, наличие хэлпера
     } else if (selectedObject === '9') {
       // createdObjects = createAdvance1Objects();
     };
@@ -109,11 +109,11 @@ const App = () => {
       const mouse = new THREE.Vector2();
 
       // Преобразуем координаты клика в нормализованные координаты устройства
-      // Пиксельные координаты делятся на ширину и высоту окна соответственно, 
-      // чтобы нормализовать их в диапазоне от 0 до 1. Это означает, 
+      // Пиксельные координаты делятся на ширину и высоту окна соответственно,
+      // чтобы нормализовать их в диапазоне от 0 до 1. Это означает,
       // что положение мыши в центре окна будет иметь x = 0.5 и y = 0.5.
-      // Нормализованные значения затем умножаются на 2 и вычитается 1, чтобы 
-      // масштабировать их до диапазона NDC от -1 до 1. Это гарантирует, 
+      // Нормализованные значения затем умножаются на 2 и вычитается 1, чтобы
+      // масштабировать их до диапазона NDC от -1 до 1. Это гарантирует,
       // что положение мыши представлено последовательно на разных размерах экрана
       // Координата y инвертируется, потому что начало системы координат NDC находится в нижнем левом углу
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
@@ -136,7 +136,7 @@ const App = () => {
             // передан первый эл массива с информацией о пересечениях
             // если клик попадет по грани, createDecals вернет null
             // функция createDecals получает объект данных первого пересечения луча с объектом сцены
-            // если этот объект существует, в сцену добавляется новый объект, 
+            // если этот объект существует, в сцену добавляется новый объект,
             //расположенный на поверхности куба
             createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0]))
           } else if (selectedObject === '3') {
@@ -144,7 +144,7 @@ const App = () => {
             // аналогично примеру выше, но в сцену добавляется объект, тянущийся к центру куба
             createDecals(intersects[0]) !== null && scene.add(createLineToCentresOfGeometry(intersects[0]));
           } else if (selectedObject === '4') {
-            // функция changeSizeAsDistance получает данные 
+            // функция changeSizeAsDistance получает данные
             //о пересечении луча с первым объектом сцены и меняет размер объектов
             changeSizeAsDistance(intersects[0], scene);
           } else if (selectedObject === '5') {
