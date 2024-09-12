@@ -1,3 +1,5 @@
+//TODO если для разных сцен происходит масштабирование вида, не забыть добавить его и в начальных сценах для обратного переключения
+//разобраться с осями
 import React, { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
 import { Layout, Menu, Spin } from 'antd';
@@ -8,7 +10,8 @@ import {
   createBasic4Objects,
   createBasic5Objects,
   createAdvance1Objects,
-} from '../DynamicEntities/DinamicObjects.js';
+  createAdvance3Objects,
+} from '../DynamicEntities/DinamicObjects';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
   handleCubeClick,
@@ -81,6 +84,14 @@ const App = () => {
       createdObjects = [makeChildren(createBasic5Objects())];
     } else if (selectedObject === '6') {
       createdObjects = createAdvance1Objects();
+    } else if (selectedObject === '7') {
+      // createdObjects = createAdvance1Objects();
+    } else if (selectedObject === '8') {
+      //TODO вытащить в переменную
+      sceneParamsRef.current.camera.position.set(2000, 300, -500);
+      createdObjects = createAdvance3Objects();
+    } else if (selectedObject === '9') {
+      // createdObjects = createAdvance1Objects();
     };
     createdObjects.forEach(obj => {
       scene.add(obj)

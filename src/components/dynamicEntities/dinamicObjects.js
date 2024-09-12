@@ -1,5 +1,7 @@
 import * as THREE from 'three';
 
+//TODO вынести функции создания объектов во внешние файлы
+
 // Функция для создания куба с закругленными углами
 function createRoundedBoxGeometry(width, height, depth, radius, smoothness) {
   const shape = new THREE.Shape();
@@ -114,8 +116,8 @@ export function createBasic5Objects() {
 }
 
 class Plane {
-  constructor(color, name) {
-    this.geometry = new THREE.PlaneGeometry(8, 8);
+  constructor(color, name, side) {
+    this.geometry = new THREE.PlaneGeometry(side, side);
     this.material = new THREE.MeshPhysicalMaterial({
       color: color,
       opacity: 0.1,
@@ -155,9 +157,104 @@ class Sphere {
 //advanced1
 export function createAdvance1Objects() {
   const objects = [];
-  objects.push(new Plane(0x67595e, 'plane_1').mesh);
+  objects.push(new Plane(0x67595e, 'plane_1', 8).mesh);
   objects.push(new Sphere(0xa49393, 'sphere_1').mesh);
   return objects;
 }
+
+//advanced3
+
+// Функция для создания хэлпера
+const createHelper = (shape) => {
+  const points = shape.getPoints();
+  const hexHelperGeometry = new THREE.BufferGeometry().setFromPoints(points);
+  // const material = new THREE.LineBasicMaterial({ color: 0xffffff });
+  // Создание линии-хэлпера
+  // const hexHelper = new THREE.Line(hexGeometry, material);
+  return hexHelperGeometry;
+};
+
+// Функция для создания шестиугольника
+function createHexagon(radius, helper) {
+  const objects = [];
+  //чтобы построить шестиугольник представим его как окружность,
+  //все вершины шестиугольника располагаются на окружности
+    const shape = new THREE.Shape();
+    for (let i = 0; i < 6; i++) {
+        //Вычисляется угол для текущей вершины в радианах.
+        const angle = (i / 6) * Math.PI * 2;
+        //1я вершина 0 радиан, вторая 2П/6(60град) и далее с шагом 60 градусов
+        const x = radius * Math.cos(angle);//по формуле вычисления координат точек на окружности
+        const y = radius * Math.sin(angle);
+        if (i === 0) {
+            shape.moveTo(x, y);//в начало линии
+        } else {
+            shape.lineTo(x, y);//в след точку
+        }
+    }
+    shape.closePath();
+
+    const geometry = new THREE.ShapeGeometry(shape);
+    objects.push(geometry);
+
+    if (helper) {
+      const hexHelper = createHelper(shape);
+      objects.push(hexHelper);
+    }
+
+    return objects;
+}
+
+// Генерация шестиугольников
+function generateHexGrid(planeSize, hexRadius = 128, helper) {
+  //формула для вычисления высоты правильного шестиугольника корень из 3*радиус
+  const hexHeight = Math.sqrt(3) * hexRadius; // Высота шестиугольника
+  const hexWidth = 2 * hexRadius; // Ширина шестиугольника
+  const offsetX = hexWidth * 0.75; // Смещение по X  * 0.75?
+  const offsetY = hexHeight; // Смещение по Y
+
+  //создаю переменные вне цикла for
+  const [hexGeometry, hexHelperGeometry] = createHexagon(hexRadius, helper);
+  const material = new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide });
+  const materialHelper = new THREE.LineBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+
+  const hexGroup = new THREE.Group(); // Группа для всех шестиугольников
+  //начина с отрицательных значений для крайней точки плоскости по осям
+  // до положительного значения крайней точки с шагом смещения
+  let string = 1;//counter
+  for (let x = (-planeSize / 2) + hexRadius; x < planeSize / 2; x += offsetX) {
+    string += 1;
+      for (let y = (-planeSize / 2) + hexRadius; y < planeSize / 2; y += offsetY) {
+          const mesh = new THREE.Mesh(hexGeometry, material);
+          const hexHelper = new THREE.Line(hexHelperGeometry, materialHelper);
+
+          // Смещение по X для четных строк чтобы замостить всю плоскость
+          const shiftX = string % 2 === 0 ? offsetX / 2 : 0;
+          // console.log(shiftX, 'shiftX')
+          mesh.position.set(x, y - shiftX, -1); // последний параметр поднимает шестиугольники над плоскостью чтобы они не совпадали
+          hexGroup.add(mesh);
+
+          if (hexHelper) {
+            hexHelper.position.set(x, y - shiftX, -1);
+            hexGroup.add(hexHelper);
+          }
+      }
+  }
+  hexGroup.rotation.x = Math.PI / 2; // Поворот всей группы по оси X
+
+  return hexGroup;
+}
+
+
+export function createAdvance3Objects(helper) {//helper=true/false
+  const objects = [];
+  objects.push(new Plane(0x67595e, 'plane_1', 2048).mesh);
+  // сетка шестиугольников
+  const hexGroup = generateHexGrid(2048, helper);
+  objects.push(hexGroup);
+  console.log(objects, 'objects')
+  return objects;
+}
+
 
 
