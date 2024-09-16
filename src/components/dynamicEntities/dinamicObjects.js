@@ -1,6 +1,17 @@
 import * as THREE from 'three';
+import { generateUVs, makeTexture } from './DinamicFunctions';
+import texture from '../Assets/texture_2_small.jpg';
+// console.log(texture, 'texture')
 
 //TODO вынести функции создания объектов во внешние файлы
+
+//todo delme
+import baseColorImg from '../Assets/texture2/Rubber_Sole_003_basecolor.jpg';
+import ambientOcclusImg from '../Assets/texture2/Rubber_Sole_003_ambientOcclusion.jpg';
+import heightImg from '../Assets/texture2/Rubber_Sole_003_height.png';
+import normalMapImg from '../Assets/texture2/Rubber_Sole_003_normal.jpg';
+const experimentalTexture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg)
+//todo delme
 
 // Функция для создания куба с закругленными углами
 function createRoundedBoxGeometry(width, height, depth, radius, smoothness) {
@@ -29,7 +40,7 @@ function createRoundedBoxGeometry(width, height, depth, radius, smoothness) {
 }
 
 // Объекты для первых трех пунктов меню basic1-3
-export function createBasic123Objects(environmentTexture) {
+export function createBasic123Objects(environmentTexture) {//TODObdelete texture
   const objects = [];
 
   // Создание геометрии с закругленными углами
@@ -47,7 +58,7 @@ export function createBasic123Objects(environmentTexture) {
     clearcoatRoughness: 0.1,
   });
 
-  const glassMesh1 = new THREE.Mesh(glassGeometry, glassMaterial);
+  const glassMesh1 = new THREE.Mesh(glassGeometry, glassMaterial); //TODO заменить на glassMaterial
   glassMesh1.castShadow = true;
   glassMesh1.receiveShadow = true;
   glassMesh1.position.x = -10;
@@ -117,7 +128,7 @@ export function createBasic5Objects() {
 
 class Plane {
   constructor(color, name, side) {
-    this.geometry = new THREE.PlaneGeometry(side, side);
+    this.geometry = new THREE.PlaneGeometry(side, side, 500, 500);
     this.material = new THREE.MeshPhysicalMaterial({
       color: color,
       opacity: 0.1,
@@ -129,7 +140,7 @@ class Plane {
       clearcoatRoughness: 0.2,
       side: THREE.DoubleSide,
     });
-    this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh = new THREE.Mesh(this.geometry, experimentalTexture); //TODO вернуть на место this.material
     this.mesh.name = name;
     this.mesh.rotation.x = Math.PI / 2;
   }
@@ -158,7 +169,7 @@ class Sphere {
 export function createAdvance1Objects() {
   const objects = [];
   objects.push(new Plane(0x67595e, 'plane_1', 8).mesh);
-  objects.push(new Sphere(0xa49393, 'sphere_1').mesh);
+  // objects.push(new Sphere(0xa49393, 'sphere_1').mesh);
   return objects;
 }
 
@@ -195,22 +206,27 @@ function createHexagon(radius, helper) {
   shape.closePath();
 
   const geometry = new THREE.ShapeGeometry(shape);
+
+  // Генерация UV-координат для текстуры
+  generateUVs(geometry);//нов
+
   objects.push(geometry);
 
   return objects;
 }
 
-// Генерация шестиугольников
-function generateHexGrid(planeSize, hexRadius, helper) {
-  //формула для вычисления высоты правильного шестиугольника корень из 3*радиус
+// Генерация шестиугольников generateUVs makeTexture
+function generateHexGrid(planeSize, hexRadius, helper, textureMaterial) {
+  //формула для вычисления высоты правильного шестиугольника корень из 3 * радиус
   const hexHeight = Math.sqrt(3) * hexRadius; // Высота шестиугольника
   const hexWidth = 2 * hexRadius; // Ширина шестиугольника
-  const offsetX = hexWidth * 0.75; // Смещение по X  * 0.75?
+  const offsetX = hexWidth * 0.75; // Смещение по X
   const offsetY = hexHeight; // Смещение по Y
 
   //создаю переменные вне цикла for TODO создавать в зависимости от helper, если хэлпер не включен, переменные не нужны, но и в цикле несколько раз создавать нет смысла
   const [hexGeometry] = createHexagon(hexRadius, helper);
-  const material = new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide });
+  // применение текстуры, временное решение, TODO переделать в применение по клику
+  const material = textureMaterial || new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide });
   const materialHelper = new THREE.LineBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
 
   const hexGroup = new THREE.Group(); // Группа для всех шестиугольников
@@ -219,20 +235,19 @@ function generateHexGrid(planeSize, hexRadius, helper) {
   let string = 1;//counter
   for (let x = (-planeSize / 2); x < planeSize / 2 + hexRadius; x += offsetX) {
     string += 1;
-    // Смещение по X для четных строк чтобы замостить всю плоскость
-    // перенесено из второго цикла чтобы уменьшить кол-во итераций
+    // Смещение по Y для четных строк чтобы замостить всю плоскость
+    // перенесено из второго цикла чтобы уменьшить кол-во операций
     const shiftY = string % 2 === 0 ? offsetY / 2 : 0;
 
     for (let y = (-planeSize / 2) + hexRadius / 2; y < planeSize / 2 + hexRadius; y += offsetY) {
       const mesh = new THREE.Mesh(hexGeometry, material);
-
 
       mesh.position.set(x, y - shiftY, -5);
       // второй параметр сдвигает каждый четный ряд,
       // последний параметр поднимает шестиугольники над плоскостью чтобы они не совпадали с ней
       hexGroup.add(mesh);
 
-      if (helper) {//TODO вынести в отдельную
+      if (helper) {//TODO вынести в отдельную ф-ю
         const edgesGeometry = new THREE.EdgesGeometry(hexGeometry);
         const line = new THREE.LineSegments(edgesGeometry, materialHelper);
         line.position.set(x, y - shiftY, -5);
@@ -245,14 +260,13 @@ function generateHexGrid(planeSize, hexRadius, helper) {
   return hexGroup;
 }
 
-
-export function createAdvance3Objects(planeSize, hexRadius, helper) {//helper=true/false
+export function createAdvance3Objects(planeSize, hexRadius, helper, textureMaterial) {//helper=true/false
   const objects = [];
   objects.push(new Plane(0x67595e, 'plane_1', 2048).mesh);
   // сетка шестиугольников
-  const hexGroup = generateHexGrid(planeSize, hexRadius, helper);//размер плоскости, радиус шестиугольника, наличие хэлпера
+  const hexGroup = generateHexGrid(planeSize, hexRadius, helper, textureMaterial);
   objects.push(hexGroup);
-  // console.log(objects, 'objects')
+  console.log(objects, 'objects')
   return objects;
 }
 

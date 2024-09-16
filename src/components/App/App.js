@@ -1,5 +1,5 @@
-//TODO если для разных сцен происходит масштабирование вида, не забыть добавить его и в начальных сценах для обратного переключения
 //разобраться с осями
+// todo раскидать элементы по файлам
 import React, { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
 import { Layout, Menu, Spin } from 'antd';
@@ -21,9 +21,27 @@ import {
   makeChildren,
   randomPosition,
   moveSphere,
+  makeTexture,
 } from '../DynamicEntities/DinamicFunctions.js';
 import { handleResize } from '../ThreeJSScene/HandleResize.js';
 import { menuItems } from '../Constants.js';
+
+// import baseColorImg from '../Assets/texture/Wood_Wicker_011_basecolor.png';
+// import ambientOcclusImg from '../Assets/texture/Wood_Wicker_011_ambientOcclusion.png';
+// import heightImg from '../Assets/texture/Wood_Wicker_011_height.png';
+// import normalMapImg from '../Assets/texture/Wood_Wicker_011_normal.png';
+// import opacityImg from '../Assets/texture/Wood_Wicker_011_opacity.png';
+// import roughnessImg from '../Assets/texture/Wood_Wicker_011_roughness.png';
+// // import metalnessImg from '../Assets/texture/';
+
+import baseColorImg from '../Assets/texture2/Rubber_Sole_003_basecolor.jpg';
+import ambientOcclusImg from '../Assets/texture2/Rubber_Sole_003_ambientOcclusion.jpg';
+import heightImg from '../Assets/texture2/Rubber_Sole_003_height.png';
+import normalMapImg from '../Assets/texture2/Rubber_Sole_003_normal.jpg';
+// import opacityImg from '../Assets/texture2/';
+// import roughnessImg from '../Assets/texture/Wood_Wicker_011_roughness.png';
+// import metalnessImg from '../Assets/texture/';
+
 
 const { Sider } = Layout;
 
@@ -57,11 +75,18 @@ const App = () => {
     };
   }, []);
 
+  //удаление всего кроме освещения
   function deleteSceneObjects(scene) {
-    while (scene.children.length > 0) {
-      scene.remove(scene.children[0]);
+    for (let i = scene.children.length - 1; i >= 0; i--) {
+      const obj = scene.children[i];
+
+      if (!(obj instanceof THREE.Light)) {
+        scene.remove(obj);
+      }
     }
   }
+
+
 
   // удаление старых мешей добавление новых
   useEffect(() => {
@@ -74,26 +99,39 @@ const App = () => {
 
     let createdObjects = []
 
+    //todo эта временно здесь, убрать позже
+    // const setupScene = async () => {
+    //   return createdObjects = await createAdvance3Objects(2048, 128, true, makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg, opacityImg, roughnessImg));
+    // }
+
+
+
     // Выбираем объекты для сцены на основе selectedObject
     if (selectedObject === '1' || selectedObject === '2' || selectedObject === '3') {
-      createdObjects = createBasic123Objects(scene.environment);
+      sceneParamsRef.current.camera.position.set(50, 10, 50);
+      //todo удали makeTexture
+      createdObjects = createBasic123Objects(scene.environment);//, opacityImg, roughnessImg
     } else if (selectedObject === '4') {
+      sceneParamsRef.current.camera.position.set(50, 10, 50);
       // объекты изменены т.к. ExtrudeGeometry требует особого подхода
       createdObjects = createBasic4Objects();
     } else if (selectedObject === '5') {
+      sceneParamsRef.current.camera.position.set(50, 10, 50);
       createdObjects = [makeChildren(createBasic5Objects())];
     } else if (selectedObject === '6') {
+      sceneParamsRef.current.camera.position.set(50, 10, 50);
       createdObjects = createAdvance1Objects();
     } else if (selectedObject === '7') {
       // createdObjects = createAdvance1Objects();
     } else if (selectedObject === '8') {
-      //TODO вытащить в переменную
       sceneParamsRef.current.camera.position.set(2000, 300, -500);
-      createdObjects = createAdvance3Objects(2048, 128, true); //размер плоскости, радиус шестиугольника, наличие хэлпера
+      createdObjects = createAdvance3Objects(2048, 128, true, () => makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg));//, opacityImg, roughnessImg
+
     } else if (selectedObject === '9') {
       // createdObjects = createAdvance1Objects();
     };
     createdObjects.forEach(obj => {
+      console.log(obj, 'obj')
       scene.add(obj)
     });
     //changedObjs не нужен в зависимостях тк он вызывает ненужное удаление объектов при их изменении
@@ -151,6 +189,13 @@ const App = () => {
             randomPosition(scene, camera);
           } else if (selectedObject === '6') {
             moveSphere(intersects[0], scene);
+          } else if (selectedObject === '7') {
+            // moveSphere(intersects[0], scene);
+          } else if (selectedObject === '8') {
+            // makeTexture(intersects[0], baseColorImg, ambientOcclusImg, heightImg, normalMapImg, opacityImg, roughnessImg);
+            //присваивание текстуры по клику ибо так прикольнее :-)
+          } else if (selectedObject === '9') {
+            // moveSphere(intersects[0], scene);
           }
         }
       }

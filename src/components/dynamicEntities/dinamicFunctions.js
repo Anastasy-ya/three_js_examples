@@ -199,7 +199,7 @@ function calculateIntersectionArea(circle, plane) {
     intersectX = Math.abs(x0 - radius)
   }
 
-  // всегда будет удовлетворять условиям, но пусть будет на случай, 
+  // всегда будет удовлетворять условиям, но пусть будет на случай,
   // если понадобится двигать сферу во всех плоскостях
   let intersectY = 0;
   if (y0 >= 0) {
@@ -282,4 +282,228 @@ export function moveSphere(intersection, scene) {
 
   const intersectionArea = calculateIntersectionArea(spheres[0], planes[0]);
   console.log('Площадь пересечения:', intersectionArea);
+}
+
+// Advanced 3
+
+// Функция для генерации UV-координат
+export function generateUVs(geometry, radius) {
+  const uvs = [];
+  const position = geometry.attributes.position;
+
+  for (let i = 0; i < position.count; i++) {
+    const x = position.getX(i);
+    const y = position.getY(i);
+
+    // Переводим координаты вершины в UV в диапазоне [0, 1]
+    const u = (x / (2 * radius)) + 0.5;
+    const v = (y / (Math.sqrt(3) * radius)) + 0.5;
+
+    uvs.push(u, v);
+  }
+  geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+}
+
+// export function makeTexture(intersection, baseColorImg, ambientOcclusImg, heightImg, normalMapImg, opacity, roughnessImg) {
+//   // Загрузка текстуры
+// const loadedTexture = new THREE.TextureLoader();
+
+// const baseColorTexture = loadedTexture.load(baseColorImg);
+// const ambientOcclusTexture = loadedTexture.load(ambientOcclusImg);
+// const heightTexture = loadedTexture.load(heightImg);
+// const normalTexture = loadedTexture.load(normalMapImg);
+// const opacityTexture = loadedTexture.load(opacity);
+// const roughnessTexture = loadedTexture.load(roughnessImg);
+
+
+
+
+// // Настройка повторения текстуры
+// loadedTexture.wrapS = THREE.RepeatWrapping;
+// loadedTexture.wrapT = THREE.RepeatWrapping;
+
+// // Настройка масштабирования текстуры
+// loadedTexture.repeat.set(1, 1);
+
+// // Создание материала с текстурой
+// const material = new THREE.MeshStandardMaterial({
+//   color: 0xffffff,
+//   map: loadedTexture,
+//   side: THREE.DoubleSide
+// });
+// // console.log(material, 'material')
+// return material;
+// }
+
+// export function makeTexture(
+//   baseColorImg,
+//   ambientOcclusImg,
+//   heightImg,
+//   normalMapImg,
+//   opacityImg,
+//   roughnessImg,
+//   displacementScale = 1
+// ) { //metalnessImg
+//     // Создание загрузчика текстур
+//     const textureLoader = new THREE.TextureLoader();
+
+//     console.log(baseColorImg, ambientOcclusImg, heightImg, normalMapImg, opacityImg, roughnessImg, roughnessImg)
+
+//     // Загрузка текстур
+//     const baseColorTexture = textureLoader.load(baseColorImg);
+//     const ambientOcclusTexture = textureLoader.load(ambientOcclusImg);
+//     const heightTexture = textureLoader.load(heightImg);
+//     const normalTexture = textureLoader.load(normalMapImg);
+//     const opacityTexture = textureLoader.load(opacityImg);
+//     const roughnessTexture = textureLoader.load(roughnessImg);
+//     // const metalnessTexture = textureLoader.load(metalnessImg);
+
+//     // Настройка повторения текстур
+//     const textures = [baseColorTexture, ambientOcclusTexture, heightTexture, normalTexture, opacityTexture, roughnessTexture]; //, metalnessTexture
+//     textures.forEach(texture => {
+//         if (texture) {
+//             texture.wrapS = THREE.RepeatWrapping;
+//             texture.wrapT = THREE.RepeatWrapping;
+//             texture.repeat.set(1, 1);
+//         }
+//     });
+
+//     // console.log(!!opacityTexture, '!!opacityTexture')
+
+//     // Создание материала с текстурами
+//     const material = new THREE.MeshStandardMaterial({
+//         map: baseColorTexture, // Основная текстура цвета
+//         aoMap: ambientOcclusTexture, // Ambient Occlusion
+//         displacementMap: heightTexture, // Карта высот
+//         displacementScale: displacementScale, // Масштаб высот
+//         normalMap: normalTexture, // Карта нормалей
+//         roughnessMap: roughnessTexture, // Карта шероховатости
+//         roughness: roughnessTexture ? 1 : undefined, // Если нет карты шероховатости, использовать значение по умолчанию
+//         // metalnessMap: metalnessTexture, // Карта металлического эффекта
+//         // metalness: metalnessTexture ? 1 : undefined, // Если нет карты металлическости, использовать значение по умолчанию
+//         transparent: !!opacityTexture, //Приведение к булеву значению, если есть прозрачность, включить прозрачность (true)
+//         alphaMap: opacityTexture, // Карта прозрачности
+//         side: THREE.DoubleSide // Двойная сторона для рендеринга обеих сторон
+//     });
+
+//     return material;
+// }
+
+// baseColorImg, ambientOcclusImg, heightImg, normalMapImg, opacityImg, roughnessImg
+
+//при использовании обязателен блок catch
+
+
+
+
+
+
+
+
+
+
+
+// export function makeTexture(
+//   baseColorImg,
+//   ambientOcclusImg,
+//   heightImg,
+//   normalMapImg,
+//   opacityImg,
+//   roughnessImg,
+//   displacementScale = 1
+// ) {
+//   const loader = new THREE.TextureLoader();
+
+//   const loadTexture = (url) => {
+//     return new Promise((resolve, reject) => {
+//       loader.load(url, resolve, undefined, reject);
+//     });
+//   };
+
+//   return Promise.all([
+//     loadTexture(baseColorImg),
+//     loadTexture(ambientOcclusImg),
+//     loadTexture(heightImg),
+//     loadTexture(normalMapImg),
+//     loadTexture(opacityImg),
+//     loadTexture(roughnessImg),
+//   ])
+//     .then(([baseColorTexture, ambientOcclusTexture, heightTexture, normalTexture, opacityTexture, roughnessTexture]) => {
+//       // Создание материала с текстурами
+//       const textureMaterial = new THREE.MeshStandardMaterial({
+//         map: baseColorTexture, // Основная текстура цвета
+//         aoMap: ambientOcclusTexture, // Ambient Occlusion
+//         displacementMap: heightTexture, // Карта высот
+//         displacementScale: displacementScale, // Масштаб высот
+//         normalMap: normalTexture, // Карта нормалей
+//         roughnessMap: roughnessTexture, // Карта шероховатости
+//         roughness: roughnessTexture ? 1 : undefined, // Если нет карты шероховатости, использовать значение по умолчанию
+//         // metalnessMap: metalnessTexture, // Карта металлического эффекта
+//         // metalness: metalnessTexture ? 1 : undefined, // Если нет карты металлическости, использовать значение по умолчанию
+//         transparent: !!opacityTexture, // Приведение к булеву значению, если есть прозрачность, включить прозрачность (true)
+//         alphaMap: opacityTexture, // Карта прозрачности
+//         side: THREE.DoubleSide // Двойная сторона для рендеринга обеих сторон
+//       });
+//       console.log(textureMaterial, 'textureMaterial')
+//       return textureMaterial;
+//     })
+//     .catch((error) => {
+//       console.error('Ошибка при загрузке текстур2:', error);
+//       return null;
+//     });
+// }
+
+export function makeTexture(
+  baseColorImg,
+  ambientOcclusImg = null,
+  heightImg = null,
+  normalMapImg = null,
+  opacityImg = null,
+  roughnessImg = null,
+  metalnessImg = null,
+  displacementScale = 0.2
+) {
+  const textureLoader = new THREE.TextureLoader();
+
+    // console.log(baseColorImg, ambientOcclusImg, heightImg, normalMapImg, opacityImg, roughnessImg, roughnessImg, 'переменные текстур поступили  в makeTexture')
+
+    // Загрузка текстур
+    const baseColorTexture = textureLoader.load(baseColorImg);
+    const ambientOcclusTexture = textureLoader.load(ambientOcclusImg);
+    const heightTexture = textureLoader.load(heightImg);
+    const normalTexture = textureLoader.load(normalMapImg);
+    const opacityTexture = textureLoader.load(opacityImg);
+    const roughnessTexture = textureLoader.load(roughnessImg);
+    const metalnessTexture = textureLoader.load(metalnessImg);
+
+    // Настройка повторения текстур
+    const textures = [baseColorTexture, ambientOcclusTexture, heightTexture, normalTexture]; //, metalnessTexture, opacityTexture, roughnessTexture
+    textures.forEach(texture => {
+        if (texture) {
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(1, 1);
+        }
+    });
+
+    // console.log(!!opacityTexture, '!!opacityTexture')
+
+    // Создание материала с текстурами
+    const material = new THREE.MeshStandardMaterial({
+        map: baseColorTexture,
+        aoMap: ambientOcclusTexture, // Ambient Occlusion
+        displacementMap: heightTexture,
+        displacementScale: displacementScale, // Масштаб высот
+        normalMap: normalTexture,
+        roughnessMap: roughnessTexture,
+        roughness: roughnessTexture ? .5 : undefined,
+        // metalnessMap: metalnessTexture,
+        // metalness: metalnessTexture ? 1 : undefined, // Если нет карты opacityTexture, использовать значение по умолчанию
+        // transparent: !!opacityTexture, //Приведение к булеву значению, если есть прозрачность, включить прозрачность (true)
+        // alphaMap: opacityTexture,
+        side: THREE.DoubleSide
+    });
+
+    return material;
+
 }
