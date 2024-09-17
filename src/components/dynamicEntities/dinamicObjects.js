@@ -1,16 +1,16 @@
 import * as THREE from 'three';
 import { generateUVs, makeTexture } from './DinamicFunctions';
-import texture from '../Assets/texture_2_small.jpg';
+// import texture from '../Assets/texture_2_small.jpg';
 // console.log(texture, 'texture')
 
 //TODO вынести функции создания объектов во внешние файлы
 
 //todo delme
-import baseColorImg from '../Assets/texture2/Rubber_Sole_003_basecolor.jpg';
-import ambientOcclusImg from '../Assets/texture2/Rubber_Sole_003_ambientOcclusion.jpg';
-import heightImg from '../Assets/texture2/Rubber_Sole_003_height.png';
-import normalMapImg from '../Assets/texture2/Rubber_Sole_003_normal.jpg';
-const experimentalTexture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg)
+// import baseColorImg from '../Assets/texture_01.jpg';
+// import ambientOcclusImg from '../Assets/texture2/Rubber_Sole_003_ambientOcclusion.jpg';
+// import heightImg from '../Assets/texture2/Rubber_Sole_003_height.png';
+// import normalMapImg from '../Assets/texture2/Rubber_Sole_003_normal.jpg';
+// const experimentalTexture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg)
 //todo delme
 
 // Функция для создания куба с закругленными углами
@@ -140,7 +140,7 @@ class Plane {
       clearcoatRoughness: 0.2,
       side: THREE.DoubleSide,
     });
-    this.mesh = new THREE.Mesh(this.geometry, experimentalTexture); //TODO вернуть на место this.material
+    this.mesh = new THREE.Mesh(this.geometry, this.material);
     this.mesh.name = name;
     this.mesh.rotation.x = Math.PI / 2;
   }
@@ -169,7 +169,7 @@ class Sphere {
 export function createAdvance1Objects() {
   const objects = [];
   objects.push(new Plane(0x67595e, 'plane_1', 8).mesh);
-  // objects.push(new Sphere(0xa49393, 'sphere_1').mesh);
+  objects.push(new Sphere(0xa49393, 'sphere_1').mesh);
   return objects;
 }
 
@@ -183,6 +183,17 @@ export function createAdvance1Objects() {
 //   // Создание линии-хэлпера
 //   // const hexHelper = new THREE.Line(hexGeometry, material);
 //   return hexHelperGeometry;
+// };
+
+///////////////////////////далее рабочий код до переписывания
+
+// const extrudeSettings = {
+//   steps: 1, // Количество шагов экструзии (можно использовать для создания эффекта толщины)
+//   depth: 0, // Толщина экструзии
+//   bevelEnabled: false, // Включить/выключить фаски
+//   bevelThickness: 0, // Толщина фаски
+//   bevelSize: 0, // Размер фаски
+//   bevelSegments: 0 // Количество сегментов фаски
 // };
 
 // Функция для создания шестиугольника
@@ -207,8 +218,10 @@ function createHexagon(radius, helper) {
 
   const geometry = new THREE.ShapeGeometry(shape);
 
+  // const modifier = new THREE.SubdivisionModifier(2); // Уровень разбиения
+  // modifier.modify(geometry);
   // Генерация UV-координат для текстуры
-  generateUVs(geometry);//нов
+  generateUVs(geometry);
 
   objects.push(geometry);
 
@@ -216,6 +229,7 @@ function createHexagon(radius, helper) {
 }
 
 // Генерация шестиугольников generateUVs makeTexture
+//TODO разобраться с зонами ответственности функций
 function generateHexGrid(planeSize, hexRadius, helper, textureMaterial) {
   //формула для вычисления высоты правильного шестиугольника корень из 3 * радиус
   const hexHeight = Math.sqrt(3) * hexRadius; // Высота шестиугольника
@@ -227,6 +241,7 @@ function generateHexGrid(planeSize, hexRadius, helper, textureMaterial) {
   const [hexGeometry] = createHexagon(hexRadius, helper);
   // применение текстуры, временное решение, TODO переделать в применение по клику
   const material = textureMaterial || new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide });
+  // console.log(material, 'material')
   const materialHelper = new THREE.LineBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide });
 
   const hexGroup = new THREE.Group(); // Группа для всех шестиугольников
@@ -242,7 +257,7 @@ function generateHexGrid(planeSize, hexRadius, helper, textureMaterial) {
     for (let y = (-planeSize / 2) + hexRadius / 2; y < planeSize / 2 + hexRadius; y += offsetY) {
       const mesh = new THREE.Mesh(hexGeometry, material);
 
-      mesh.position.set(x, y - shiftY, -5);
+      mesh.position.set(x, y - shiftY, 5);
       // второй параметр сдвигает каждый четный ряд,
       // последний параметр поднимает шестиугольники над плоскостью чтобы они не совпадали с ней
       hexGroup.add(mesh);
@@ -250,12 +265,12 @@ function generateHexGrid(planeSize, hexRadius, helper, textureMaterial) {
       if (helper) {//TODO вынести в отдельную ф-ю
         const edgesGeometry = new THREE.EdgesGeometry(hexGeometry);
         const line = new THREE.LineSegments(edgesGeometry, materialHelper);
-        line.position.set(x, y - shiftY, -5);
+        line.position.set(x, y - shiftY, 5);
         hexGroup.add(line);
       }
     }
   }
-  hexGroup.rotation.x = Math.PI / 2; // Поворот всей группы по оси X
+  hexGroup.rotation.x = -Math.PI / 2; // Поворот всей группы по оси X
 
   return hexGroup;
 }
@@ -266,9 +281,7 @@ export function createAdvance3Objects(planeSize, hexRadius, helper, textureMater
   // сетка шестиугольников
   const hexGroup = generateHexGrid(planeSize, hexRadius, helper, textureMaterial);
   objects.push(hexGroup);
-  console.log(objects, 'objects')
+  // console.log(objects, 'objects')
   return objects;
 }
-
-
 

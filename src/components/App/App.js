@@ -2,7 +2,7 @@
 // todo раскидать элементы по файлам
 import React, { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
-import { Layout, Menu, Spin } from 'antd';
+import { Layout, Menu, Spin, Checkbox  } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { initScene } from '../ThreeJSScene/ThreeJSScene';
 import {
@@ -11,7 +11,7 @@ import {
   createBasic5Objects,
   createAdvance1Objects,
   createAdvance3Objects,
-} from '../DynamicEntities/DinamicObjects';
+} from '../DynamicEntities/DinamicObjects.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
   handleCubeClick,
@@ -24,7 +24,7 @@ import {
   makeTexture,
 } from '../DynamicEntities/DinamicFunctions.js';
 import { handleResize } from '../ThreeJSScene/HandleResize.js';
-import { menuItems } from '../Constants.js';
+// import { menuItems } from '../Constants.js';
 
 // import baseColorImg from '../Assets/texture/Wood_Wicker_011_basecolor.png';
 // import ambientOcclusImg from '../Assets/texture/Wood_Wicker_011_ambientOcclusion.png';
@@ -44,11 +44,52 @@ import normalMapImg from '../Assets/texture2/Rubber_Sole_003_normal.jpg';
 
 
 const { Sider } = Layout;
+const ornamentalTexture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg)
 
 const App = () => {
   const [selectedObject, setSelectedObject] = useState('0'); //пункт меню
+  const [helperAdded, setHelperAdded] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
+  //инициализация текстуры для advanced 3-4 происходит здесь для передачи ей цикла анимации
+
+  const handleCheckboxChange = (e) => {
+    setHelperAdded(e.target.checked);
+  };
+
+  const menuItems = [
+    { key: '0', label: 'Free scene' },
+    { key: '1', label: 'Basic 1' },
+    { key: '2', label: 'Basic 2' },
+    { key: '3', label: 'Basic 3' },
+    { key: '4', label: 'Basic 4' },
+    { key: '5', label: 'Basic 5' },
+    { key: '6', label: 'Advanced 1' },
+    { key: '7', label: 'Advanced 2' },
+    { key: '8', label: (
+      <div>
+        Пункт 8
+        <Checkbox//вынести в отдельный компонент и поместить
+          checked={helperAdded}
+          onChange={handleCheckboxChange}
+          style={{ marginLeft: 18 }}
+        >
+          Сетка
+        </Checkbox>
+      </div>
+    ) },
+    { key: '9', label: 'Advanced 4' }
+  ];
+
+  const animateTexture = (texture, speed= 0.01) => {
+    // Анимация текстуры
+    texture.offset.x += speed;
+    texture.offset.y += speed;
+
+    // Обеспечить цикличность текстуры
+    if (texture.offset.x > 1) texture.offset.x = 0;
+    if (texture.offset.y > 1) texture.offset.y = 0;
+};
 
   // инициализация сцены
   useEffect(() => {
@@ -59,6 +100,10 @@ const App = () => {
 
     const animate = () => {
       requestAnimationFrame(animate);
+
+      // animateTexture(texture)
+
+
       controls.update();
       renderer.render(scene, camera);
       setSceneReady(true);
@@ -75,12 +120,12 @@ const App = () => {
     };
   }, []);
 
-  //удаление всего кроме освещения
+  //удаление объектов сцены
   function deleteSceneObjects(scene) {
     for (let i = scene.children.length - 1; i >= 0; i--) {
       const obj = scene.children[i];
 
-      if (!(obj instanceof THREE.Light)) {
+      if ((obj instanceof THREE.Mesh || obj instanceof THREE.Line || obj instanceof THREE.Group)) {
         scene.remove(obj);
       }
     }
@@ -125,7 +170,9 @@ const App = () => {
       // createdObjects = createAdvance1Objects();
     } else if (selectedObject === '8') {
       sceneParamsRef.current.camera.position.set(2000, 300, -500);
-      createdObjects = createAdvance3Objects(2048, 128, true, () => makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg));//, opacityImg, roughnessImg
+      const texture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg)
+      //TODOдобавить кнопку, включающую хэлперы и заменить true на стейт
+      createdObjects = createAdvance3Objects(2048, 128, helperAdded, texture);//, opacityImg, roughnessImg
 
     } else if (selectedObject === '9') {
       // createdObjects = createAdvance1Objects();
@@ -136,7 +183,7 @@ const App = () => {
     });
     //changedObjs не нужен в зависимостях тк он вызывает ненужное удаление объектов при их изменении
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedObject]);
+  }, [selectedObject, helperAdded]);
 
 
   // обработка клика и вызов последующей функции, определяемой выбранным пунктом меню
@@ -189,11 +236,8 @@ const App = () => {
             randomPosition(scene, camera);
           } else if (selectedObject === '6') {
             moveSphere(intersects[0], scene);
-          } else if (selectedObject === '7') {
+          } else if (selectedObject === '7') { //8 пункт не требует функции активации
             // moveSphere(intersects[0], scene);
-          } else if (selectedObject === '8') {
-            // makeTexture(intersects[0], baseColorImg, ambientOcclusImg, heightImg, normalMapImg, opacityImg, roughnessImg);
-            //присваивание текстуры по клику ибо так прикольнее :-)
           } else if (selectedObject === '9') {
             // moveSphere(intersects[0], scene);
           }
