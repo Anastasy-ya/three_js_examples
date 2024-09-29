@@ -46,27 +46,27 @@ export function createBasic5Objects() {
 }
 
 //advanced1
-export function makeCircleVisualisation() {
-  const rollOverGeo = new THREE.CircleGeometry( 4, 32 );  // Круг с радиусом 8 и 32 сегментами
-  const rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xa49393, opacity: 0.5, transparent: true, side: THREE.DoubleSide } );
+export function makeCircleVisualisation(color) {
+  const rollOverGeo = new THREE.CircleGeometry( 4, 32 );  // Круг с радиусом 4 и 32 сегментами
+  const rollOverMaterial = new THREE.MeshBasicMaterial( { color: color, opacity: 0.5, transparent: true, side: THREE.DoubleSide } );
   const rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
+
   rollOverMesh.rotation.x = Math.PI / 2;
   rollOverMesh.position.y = .01;
   rollOverMesh.name = 'rollOverMesh';
+
+  // Сделать объект невидимым для raycaster
+  rollOverMesh.raycast = () => {};
+
   return rollOverMesh;
 }
-
-// export function makeCircle() {//?
-//   const circleGeo = new THREE.CircleGeometry( 25, 32 );
-//   const circleMaterial = new THREE.MeshLambertMaterial( { color: 0xfeb74c, side: THREE.DoubleSide } );
-// }
 
 
 export function createAdvance1Objects() {
   const objects = [];
   const plane = new Plane(0x67595e, 'plane_1', 8).mesh;
   objects.push(plane);
-  const circleVisualisation = makeCircleVisualisation();
+  const circleVisualisation = makeCircleVisualisation(0xffffff);
   objects.push(circleVisualisation);
   moveRollOverMesh(circleVisualisation);//показать визуализацию, параметры intersect, rollOverMesh. Событие не то!
   return objects;
