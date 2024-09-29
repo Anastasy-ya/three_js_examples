@@ -14,40 +14,33 @@ import {
 } from '../DynamicEntities/DinamicObjects.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import {
-  handleCubeClick,
-  createDecals,
-  createLineToCentresOfGeometry,
-  changeSizeAsDistance,
-  makeChildren,
-  randomPosition,
-  moveSphere,
-  makeTexture,
-} from '../DynamicEntities/DinamicFunctions.js';
-import { handleResize } from '../ThreeJSScene/HandleResize.js';
-// import { menuItems } from '../Constants.js';
 
-// import baseColorImg from '../Assets/texture/Wood_Wicker_011_basecolor.png';
-// import ambientOcclusImg from '../Assets/texture/Wood_Wicker_011_ambientOcclusion.png';
-// import heightImg from '../Assets/texture/Wood_Wicker_011_height.png';
-// import normalMapImg from '../Assets/texture/Wood_Wicker_011_normal.png';
-// import opacityImg from '../Assets/texture/Wood_Wicker_011_opacity.png';
-// import roughnessImg from '../Assets/texture/Wood_Wicker_011_roughness.png';
-// // import metalnessImg from '../Assets/texture/';
+  // makeChildren,
+  // randomPosition,
+  moveSphere,
+  // makeTexture,
+} from '../DynamicEntities/DinamicFunctions.js';
+import { getIntersectedObject } from '../DynamicEntities/DinamicFunctions.js';
+import { makeTexture } from '../DynamicEntities/Materials/makeTexture.js';
+import { makeChildren, makeRandomPosition } from '../DynamicEntities/Interactions/MakeRandomPosition.js';
+import { handleCubeClick } from '../DynamicEntities/Interactions/HandleCubeClick.js';
+import { createDecals} from '../DynamicEntities/Interactions/CreateDecals.js';
+import { createLineToCentresOfGeometry } from '../DynamicEntities/Interactions/CreateLineToCentresOfGeometry.js';
+import { changeSizeAsDistance } from '../DynamicEntities/Interactions/ChangeSizeAsDistance.js';
+import { moveRollOverMesh } from '../DynamicEntities/DinamicFunctions.js';
+
+import { handleResize } from '../ThreeJSScene/HandleResize.js';
 
 import baseColorImg from '../Assets/texture2/Rubber_Sole_003_basecolor.jpg';
 import ambientOcclusImg from '../Assets/texture2/Rubber_Sole_003_ambientOcclusion.jpg';
 import heightImg from '../Assets/texture2/Rubber_Sole_003_height.png';
 import normalMapImg from '../Assets/texture2/Rubber_Sole_003_normal.jpg';
-// import opacityImg from '../Assets/texture2/';
-// import roughnessImg from '../Assets/texture/Wood_Wicker_011_roughness.png';
-// import metalnessImg from '../Assets/texture/';
-
 
 const { Sider } = Layout;
-const ornamentalTexture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg)
 
 const App = () => {
-  const [selectedObject, setSelectedObject] = useState('0'); //пункт меню
+//выяснить почему у вновь созданного объекта цвет старого
+  const [selectedObject, setSelectedObject] = useState('6'); //TODO поменять обратно на 0
   const [helperAdded, setHelperAdded] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
@@ -68,11 +61,11 @@ const App = () => {
     { key: '7', label: 'Advanced 2' },
     { key: '8', label: (
       <div>
-        Пункт 8
+        Advanced 3
         <Checkbox//вынести в отдельный компонент и поместить
           checked={helperAdded}
           onChange={handleCheckboxChange}
-          style={{ marginLeft: 18 }}
+          style={{ marginLeft: 25, color: 'gray' }}
         >
           Сетка
         </Checkbox>
@@ -81,15 +74,15 @@ const App = () => {
     { key: '9', label: 'Advanced 4' }
   ];
 
-  const animateTexture = (texture, speed= 0.01) => {
-    // Анимация текстуры
-    texture.offset.x += speed;
-    texture.offset.y += speed;
+//   const animateTexture = (texture, speed= 0.01) => {
+//     // Анимация текстуры
+//     texture.offset.x += speed;
+//     texture.offset.y += speed;
 
-    // Обеспечить цикличность текстуры
-    if (texture.offset.x > 1) texture.offset.x = 0;
-    if (texture.offset.y > 1) texture.offset.y = 0;
-};
+//     // Обеспечить цикличность текстуры
+//     if (texture.offset.x > 1) texture.offset.x = 0;
+//     if (texture.offset.y > 1) texture.offset.y = 0;
+// };
 
   // инициализация сцены
   useEffect(() => {
@@ -131,120 +124,166 @@ const App = () => {
     }
   }
 
-
-
   // удаление старых мешей добавление новых
-  useEffect(() => {
+  // useEffect(() => {
+  //   const { scene } = sceneParamsRef.current || {};
+  //   if (!scene) return; // Ждём пока сцена инициализируется
 
+  //   // Удаляем все объекты из сцены. Важно: не использовать для сложных сцен с освещением, хэлперами и проч
+  //   deleteSceneObjects(scene);
+
+  //   let createdObjects = []
+
+  //   // Выбираем объекты для сцены на основе selectedObject
+  //   if (selectedObject === '1' || selectedObject === '2' || selectedObject === '3') {
+  //     sceneParamsRef.current.camera.position.set(50, 10, 50);
+  //     createdObjects = createBasic123Objects(scene.environment);
+  //   } else if (selectedObject === '4') {
+  //     sceneParamsRef.current.camera.position.set(50, 10, 50);
+  //     // объекты изменены т.к. ExtrudeGeometry требует особого подхода
+  //     createdObjects = createBasic4Objects();
+  //   } else if (selectedObject === '5') {
+  //     sceneParamsRef.current.camera.position.set(50, 10, 50);
+  //     createdObjects = [makeChildren(createBasic5Objects())];
+  //   } else if (selectedObject === '6') {
+  //     sceneParamsRef.current.camera.position.set(7, 2, 7);
+  //     createdObjects = createAdvance1Objects();
+
+  //     //найдем объект rollOverMesh
+  //     const rollOverMesh = createdObjects.find(mesh => mesh.name === 'rollOverMesh');
+
+  //     //не забыть обновить сцену но КАК? я не могу это делать в useEffect
+  //   // Перерисовываем сцену (обновляем визуализацию)
+  //   // render();
+  //     window.addEventListener('pointermove', (event) => {
+  //       moveRollOverMesh(rollOverMesh, event);
+  //   });
+
+  //     //навешивание слушателей
+  //   } else if (selectedObject === '7') {
+  //     // createdObjects = createAdvance1Objects();
+  //   } else if (selectedObject === '8') {
+  //     sceneParamsRef.current.camera.position.set(2000, 300, -500);
+  //     const texture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg)
+  //     console.log(texture, 'texture')
+  //     createdObjects = createAdvance3Objects(2048, 128, helperAdded, texture);//, opacityImg, roughnessImg
+
+  //   } else if (selectedObject === '9') {
+  //     // createdObjects = createAdvance1Objects();
+  //   };
+  //   createdObjects.forEach(obj => {
+  //     // console.log(obj, 'obj')
+  //     scene.add(obj)
+  //   });
+  //   return () => {
+  //     window.removeEventListener('pointermove', (event) => {
+  //       moveRollOverMesh(rollOverMesh, event);
+  //   }); //добавить удаление слушателя для движения мыши
+  //   };
+  //   //changedObjs не нужен в зависимостях тк он вызывает ненужное удаление объектов при их изменении
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [selectedObject, helperAdded]);
+  useEffect(() => {
     const { scene } = sceneParamsRef.current || {};
     if (!scene) return; // Ждём пока сцена инициализируется
 
-    // Удаляем все объекты из сцены. Важно: не использовать для сложных сцен с освещением, хэлперами и проч
+    // Удаляем все объекты из сцены
     deleteSceneObjects(scene);
 
-    let createdObjects = []
+    let createdObjects = [];
 
-    //todo эта временно здесь, убрать позже
-    // const setupScene = async () => {
-    //   return createdObjects = await createAdvance3Objects(2048, 128, true, makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg, opacityImg, roughnessImg));
-    // }
-
-
+    // Обработчик для движения мыши, вынесен за пределы условия
+    const handlePointerMove = (event) => {
+      const rollOverMesh = createdObjects.find(mesh => mesh.name === 'rollOverMesh');
+      if (rollOverMesh) {
+        moveRollOverMesh(rollOverMesh, sceneParamsRef.current, event);//event,
+      }
+    };
 
     // Выбираем объекты для сцены на основе selectedObject
     if (selectedObject === '1' || selectedObject === '2' || selectedObject === '3') {
       sceneParamsRef.current.camera.position.set(50, 10, 50);
-      //todo удали makeTexture
-      createdObjects = createBasic123Objects(scene.environment);//, opacityImg, roughnessImg
+      createdObjects = createBasic123Objects(scene.environment);
     } else if (selectedObject === '4') {
       sceneParamsRef.current.camera.position.set(50, 10, 50);
-      // объекты изменены т.к. ExtrudeGeometry требует особого подхода
       createdObjects = createBasic4Objects();
     } else if (selectedObject === '5') {
       sceneParamsRef.current.camera.position.set(50, 10, 50);
       createdObjects = [makeChildren(createBasic5Objects())];
     } else if (selectedObject === '6') {
-      sceneParamsRef.current.camera.position.set(50, 10, 50);
+      sceneParamsRef.current.camera.position.set(7, 2, 7);
       createdObjects = createAdvance1Objects();
+
+      window.addEventListener('pointermove', handlePointerMove);
     } else if (selectedObject === '7') {
       // createdObjects = createAdvance1Objects();
     } else if (selectedObject === '8') {
       sceneParamsRef.current.camera.position.set(2000, 300, -500);
-      const texture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg)
-      //TODOдобавить кнопку, включающую хэлперы и заменить true на стейт
-      createdObjects = createAdvance3Objects(2048, 128, helperAdded, texture);//, opacityImg, roughnessImg
-
+      const texture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg);
+      console.log(texture, 'texture');
+      createdObjects = createAdvance3Objects(2048, 128, helperAdded, texture);
     } else if (selectedObject === '9') {
       // createdObjects = createAdvance1Objects();
-    };
+    }
+
     createdObjects.forEach(obj => {
-      console.log(obj, 'obj')
-      scene.add(obj)
+      scene.add(obj);
     });
-    //changedObjs не нужен в зависимостях тк он вызывает ненужное удаление объектов при их изменении
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // Cleanup-функция для удаления объектов и событий
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+    };
   }, [selectedObject, helperAdded]);
 
 
-  // обработка клика и вызов последующей функции, определяемой выбранным пунктом меню
+
+  // // TODO перенести в interactions
+  // const getIntersectedObject = (event, scene, camera) => {
+  //   const raycaster = new THREE.Raycaster();
+  //   const mouse = new THREE.Vector2();
+
+  //   // Преобразуем координаты клика в нормализованные координаты устройства
+  //   mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  //   mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+  //   raycaster.setFromCamera(mouse, camera); // Устанавливаем луч от камеры
+
+  //   // Возвращаем пересечения с объектами в сцене
+  //   return raycaster.intersectObjects(scene.children);
+  // };
+
   const onClick = (event) => {
     if (sceneParamsRef.current) {
       const { scene, camera } = sceneParamsRef.current;
-      const raycaster = new THREE.Raycaster();
-      const mouse = new THREE.Vector2();
-
-      // Преобразуем координаты клика в нормализованные координаты устройства
-      // Пиксельные координаты делятся на ширину и высоту окна соответственно,
-      // чтобы нормализовать их в диапазоне от 0 до 1. Это означает,
-      // что положение мыши в центре окна будет иметь x = 0.5 и y = 0.5.
-      // Нормализованные значения затем умножаются на 2 и вычитается 1, чтобы
-      // масштабировать их до диапазона NDC от -1 до 1. Это гарантирует,
-      // что положение мыши представлено последовательно на разных размерах экрана
-      // Координата y инвертируется, потому что начало системы координат NDC находится в нижнем левом углу
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-      raycaster.setFromCamera(mouse, camera); // Устанавливаем луч от камеры на основании положения мыши
-
-      const intersects = raycaster.intersectObjects(scene.children); // Пересекаем все объекты в сцене
+      const intersects = getIntersectedObject(event, scene, camera); // Используем функцию отслеживания луча
 
       if (intersects.length > 0) {
-        const clickedObject = intersects[0].object; // Получаем объект, на который кликнули первым
+        const clickedObject = intersects[0].object; // Получаем первый пересечённый объект
 
         if (clickedObject instanceof THREE.Object3D) {
-
           if (selectedObject === '0') {
-            // пустая сцена
+            // Пустая сцена
           } else if (selectedObject === '1') {
             handleCubeClick(clickedObject);
           } else if (selectedObject === '2') {
-            // передан первый эл массива с информацией о пересечениях
-            // если клик попадет по грани, createDecals вернет null
-            // функция createDecals получает объект данных первого пересечения луча с объектом сцены
-            // если этот объект существует, в сцену добавляется новый объект,
-            //расположенный на поверхности куба
-            createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0]))
+            createDecals(intersects[0]) !== null && scene.add(createDecals(intersects[0]));
           } else if (selectedObject === '3') {
-            // лучи от клика к центру фигуры
-            // аналогично примеру выше, но в сцену добавляется объект, тянущийся к центру куба
             createDecals(intersects[0]) !== null && scene.add(createLineToCentresOfGeometry(intersects[0]));
           } else if (selectedObject === '4') {
-            // функция changeSizeAsDistance получает данные
-            //о пересечении луча с первым объектом сцены и меняет размер объектов
             changeSizeAsDistance(intersects[0], scene);
           } else if (selectedObject === '5') {
-            randomPosition(scene, camera);
+            makeRandomPosition(scene, camera);
           } else if (selectedObject === '6') {
-            moveSphere(intersects[0], scene);
-          } else if (selectedObject === '7') { //8 пункт не требует функции активации
-            // moveSphere(intersects[0], scene);
-          } else if (selectedObject === '9') {
+            //здесь будет функция добавления
             // moveSphere(intersects[0], scene);
           }
         }
       }
     }
   };
+
+// console.log(sceneParamsRef, 'sceneParamsRef')
 
   // обработка клика
   useEffect(() => {
