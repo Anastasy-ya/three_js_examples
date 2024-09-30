@@ -46,6 +46,8 @@ export function createBasic5Objects() {
 }
 
 //advanced1
+
+//перенести в объекты
 export function makeCircleVisualisation(color) {
   const rollOverGeo = new THREE.CircleGeometry( 4, 64 );  // Круг с радиусом 4 и 32 сегментами
   const rollOverMaterial = new THREE.MeshBasicMaterial( { color: color, opacity: 0.5, transparent: true, side: THREE.DoubleSide } );
@@ -54,6 +56,20 @@ export function makeCircleVisualisation(color) {
   rollOverMesh.rotation.x = Math.PI / 2;
   rollOverMesh.position.y = .01;
   rollOverMesh.name = 'rollOverMesh';
+
+  // Сделать объект невидимым для raycaster
+  rollOverMesh.raycast = () => {};
+
+  return rollOverMesh;
+}
+
+//перенести в объекты
+export function makeBoxVisualisation(color) {
+  const rollOverBox = new THREE.BoxGeometry( 32, 32, 32 );
+  const rollOverMaterial = new THREE.MeshBasicMaterial( { color: color, opacity: 0.5, transparent: true, side: THREE.DoubleSide } );
+  const rollOverMesh = new THREE.Mesh( rollOverBox, rollOverMaterial );
+  rollOverMesh.position.y = 6;
+  rollOverMesh.name = 'rollOverBox';
 
   // Сделать объект невидимым для raycaster
   rollOverMesh.raycast = () => {};
@@ -72,11 +88,14 @@ export function createAdvance1Objects() {
   return objects;
 }
 
-export function createAdvance2Objects(environmentTexture) {
+export function createAdvance2Objects() {
   const objects = [];
-  const glassMaterial = makeGlassMaterial(environmentTexture);
-  const landscape = createLandscape(glassMaterial);
-  objects.add(landscape)
+
+  const landscape = createLandscape();
+  objects.push(landscape);
+  const boxVisualisation = makeBoxVisualisation(0xffffff);
+  objects.push(boxVisualisation);
+  moveRollOverMesh(boxVisualisation);
 
   return objects;
 }

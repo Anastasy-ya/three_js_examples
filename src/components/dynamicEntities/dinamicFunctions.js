@@ -70,7 +70,7 @@ import { makeCircleVisualisation } from '../DynamicEntities/DinamicObjects'
 // }
 
 // Функция, вызываемая при движении указателя мыши
-export function moveRollOverMesh(rollOverMesh, scene, camera, event = null) {
+export function moveRollOverMesh(rollOverMesh, scene, camera, event = null, lifting) {
 
   const intersect = getIntersectedObject(event, scene, camera);
 
@@ -79,7 +79,7 @@ export function moveRollOverMesh(rollOverMesh, scene, camera, event = null) {
   }
   // Логика перемещения rollOverMesh
   rollOverMesh.position.copy(intersect[0].point);
-  rollOverMesh.position.y = rollOverMesh.position.y + 0.01;
+  rollOverMesh.position.y = rollOverMesh.position.y + lifting;
 }
 
 export const getIntersectedObject = (event, scene, camera) => {

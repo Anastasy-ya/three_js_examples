@@ -1,12 +1,11 @@
 import * as THREE from 'three';
-import { makeGlassMaterial } from '../Materials/GlassMaterial';
 
 const width = 2048;
 const height = 2048;
 const maxHeight = 20;
-const segments = 200;
+const segments = 100;
 
-export function createLandscape(map) {
+export function createLandscape() {
   const geometry = new THREE.PlaneGeometry(width, height, segments, segments);
 
   const positionAttribute = geometry.attributes.position;
@@ -16,10 +15,21 @@ export function createLandscape(map) {
   }
   positionAttribute.needsUpdate = true;
 
-  const material = makeGlassMaterial(map)
+  // Вычисление нормалей для более плавного отображения
+  geometry.computeVertexNormals();
+
+  // Применение материала Lambert
+  const material = new THREE.MeshLambertMaterial({ color: 0x88cc88, side: THREE.DoubleSide });
+
   const landscape = new THREE.Mesh(geometry, material);
   landscape.rotation.x = -Math.PI / 2;
-  // console.log(landscape, 'landscape')
+
+  // Добавление источника света для LambertMaterial
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(0, 50, 50);  // Направление света
+  landscape.add(light);  // Не забудь добавить свет в сцену отдельно!
+
   return landscape;
 }
+
 

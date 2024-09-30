@@ -38,7 +38,7 @@ const { Sider } = Layout;
 
 const App = () => {
   //выяснить почему у вновь созданного объекта цвет старого
-  const [selectedObject, setSelectedObject] = useState('0');
+  const [selectedObject, setSelectedObject] = useState('7'); //TODO вернуть на 0
   const [helperAdded, setHelperAdded] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
@@ -100,15 +100,15 @@ const App = () => {
   }, []);
 
   // Функция-обработчик указателя
-  const handlePointerMove = (frameCount, rollOverMesh, scene, camera) => (event) => {
+  const handlePointerMove = (frameCount, rollOverMesh, scene, camera, lifting) => (event) => {
     frameCount++;
-    if (frameCount % 4 !== 0) return;
+    if (frameCount % 3 !== 0) return;
     // Оптимизация, перехватываем каждый 4-й кадр
 
     if (!rollOverMesh) return;
     // Проверяем, что объект существует
 
-    moveRollOverMesh(rollOverMesh, scene, camera, event);
+    moveRollOverMesh(rollOverMesh, scene, camera, event, lifting);
     // Вызов перемещения
   };
 
@@ -147,13 +147,23 @@ const App = () => {
         createdObjects = createAdvance1Objects();
         const rollOverMesh = createdObjects.find(mesh => mesh.name === 'rollOverMesh');
         //храню функцию внутри pointerMoveHandler для добавления и удаления слушателя
-        pointerMoveHandler = handlePointerMove(frameCount, rollOverMesh, scene, camera);
+        pointerMoveHandler = handlePointerMove(frameCount, rollOverMesh, scene, camera, .01);
+        //подъем на 0,01 чтобы меши не совпадали
         window.addEventListener('pointermove', pointerMoveHandler);
         break;
       case '7':
-        createdObjects = createAdvance2Objects(scene.environment);
-        console.log(createdObjects, 'createdObjects')
+        //Поскольку навешивается либо слушатель из case 6, либо из case 7 и они идентичны,
+        // требуется только один раз удалять слушатель
+        sceneParamsRef.current.camera.position.set(100, 23, 7);
+        createdObjects = createAdvance2Objects();
+        const rollOverBox = createdObjects.find(mesh => mesh.name === 'rollOverBox');
+        //храню функцию внутри pointerMoveHandler для добавления и удаления слушателя
+        pointerMoveHandler = handlePointerMove(frameCount, rollOverBox, scene, camera, 6);
+        //подъем на 6 чтобы куб стоял на плоскости, а не утопал в ней.
+        //Разброс высоты плоскости по 10 вверх и вниз, значит и куб может опуститься на -10 + (32 / 2)
+        window.addEventListener('pointermove', pointerMoveHandler);
         break;
+
       case '8':
         sceneParamsRef.current.camera.position.set(2000, 300, -500);
         const texture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg);
