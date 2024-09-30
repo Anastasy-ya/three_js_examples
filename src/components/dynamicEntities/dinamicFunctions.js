@@ -102,6 +102,7 @@ export const getIntersectedObject = (event, scene, camera) => {
 export function createOrChangeCircle(clickedObject, intersect, scene) {
   if (clickedObject.geometry instanceof THREE.PlaneGeometry) {
     const point = intersect.point;
+    let circle = null;
 
     // Проверяем, есть ли уже объект с именем 'circle' в сцене
     const existingCircle = scene.getObjectByName('circle');
@@ -111,7 +112,7 @@ export function createOrChangeCircle(clickedObject, intersect, scene) {
       existingCircle.position.set(point.x, point.y + 0.001, point.z);
     } else {
       // Если объект не найден, создаем новый
-      const circle = makeCircleVisualisation(0x0000FF);
+      circle = makeCircleVisualisation(0x0000FF);
       circle.name = 'circle';
       circle.position.set(point.x, point.y + 0.001, point.z);
       // Круг находится под визуализацией
@@ -119,23 +120,12 @@ export function createOrChangeCircle(clickedObject, intersect, scene) {
     }
 
     // Рассчитаем площадь пересечения окружности с плоскостью
-    // const intersectionArea = calculateIntersectionArea(circle, clickedObject);
-    // console.log('Площадь пересечения:', intersectionArea);
+    const intersectionArea = calculateIntersectionArea(existingCircle || circle, clickedObject);
+    console.log('Площадь пересечения:', intersectionArea);
   } else {
     console.log('There is no plane clicked');
   }
 }
-
-// // Обработчик для движения мыши, вынесен за пределы условия
-// export const handlePointerMove = (event, sceneParamsRef, createdObjects) => {
-//   // const { scene, camera } = sceneParamsRef.current || {};
-//   // if (!scene || !camera) return; // Ждём пока сцена инициализируется
-
-//   // const rollOverMesh = createdObjects.find(mesh => mesh.name === 'rollOverMesh');
-//   // if (rollOverMesh) {
-//   //   moveRollOverMesh(rollOverMesh, sceneParamsRef, event);
-//   // }
-// };
 
 //удаление объектов сцены
 export function deleteSceneObjects(scene) {
@@ -147,6 +137,65 @@ export function deleteSceneObjects(scene) {
     }
   }
 }
+
+/////////////////////////
+export function calculateIntersectionArea(circle, plane) {
+  const radius = circle.geometry.parameters.radius;
+  const Smax = Math.PI * radius * radius;
+  //начальное значение равно максимально возможной площади пересечения
+  let intersectionArea = Smax;
+  console.log(Smax, 'Smax')
+
+  // const center = circle.position;
+  //центр шара
+  const x0 = circle.position.x;
+  const y0 = circle.position.y;
+  const z0 = circle.position.z;
+  const halfPlaneWidth = plane.geometry.parameters.width / 2;
+
+  //определение выхода сферы за границы плоскости
+  //если положение точки, увеличенной на радиус окружности,
+  //дальше половины плоскости, значит окружность вышла за пределы плоскости
+  let intersectX = (x0 >= 0) ? (x0 + radius) : (Math.abs(x0 - radius));
+  let intersectY = (y0 >= 0) ? (y0 + radius) : (Math.abs(y0 - radius));
+  let intersectZ = (z0 >= 0) ? (z0 + radius) : (Math.abs(z0 - radius));
+
+  //вариант нахождения сферы отдельно от плоскости не рассчитывается поскольку сфера перемещается относительно плоскости
+  //если сфера выходит за границы плоскости частично, нужно понять происходит ли сечение окружности хордой или сегментом
+  if (intersectX >= halfPlaneWidth || intersectZ >= halfPlaneWidth || intersectY >= halfPlaneWidth) {
+    console.log('сфера вышла за границы плоскости');
+    //определим считать площадь для круга, ограниченного прямой или двумя прямыми
+    //сдвиг только по x или только по z
+    if ((intersectX >= halfPlaneWidth && z0 === 0) || (intersectZ >= halfPlaneWidth && x0 === 0)) {
+      //формула вычисления площади для круга, отсеченного одной прямой
+      //S = (1/2) * R^2 * (α - sin(α))
+      // Угол α в радианах
+      const alpha = Math.acos(Math.min(1, Math.max(-1, radius / (radius + intersectX - halfPlaneWidth))));
+      intersectionArea = 0.5 * radius * radius * (alpha - Math.sin(alpha));
+      // intersectionArea = 'считать по формуле вычисления площади части круга, отрезанного хордой'
+    } else {
+      //формула вычисления площади для круга, отсеченного двумя прямыми
+      const effectiveRadius = radius - (halfPlaneWidth - Math.abs(intersectX));
+      const segmentHeight = effectiveRadius > 0 ? effectiveRadius : 0; // минимальная высота сегмента
+
+      if (segmentHeight > 0) {
+        const alpha1 = Math.acos(Math.min(1, segmentHeight / radius));
+        const segmentArea1 = 0.5 * radius * radius * (alpha1 - Math.sin(alpha1));
+
+        const alpha2 = Math.acos(Math.min(1, (radius - effectiveRadius) / radius));
+        const segmentArea2 = 0.5 * radius * radius * (alpha2 - Math.sin(alpha2));
+
+        intersectionArea = Smax - (segmentArea1 + segmentArea2);
+      }
+
+    }
+
+    //как рассчитать уменьшенный диаметр круга для сегмента в случае, если он занимает меньше 25%? А если он еще и сдвинут?
+    // intersectionArea = 'вычислять площадь сегмента с уменьшением диаметра и вычитать получившееся значение из общей плоскости'
+  }
+  return intersectionArea;
+}
+
 
 
 

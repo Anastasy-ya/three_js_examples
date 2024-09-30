@@ -8,7 +8,7 @@ import { Plane } from './Objects/Plane';
 import { generateHexGrid } from './Objects/HexGrid';
 import { moveRollOverMesh } from './DinamicFunctions';
 // import { getIntersectedObject } from '../DynamicEntities/DinamicFunctions';
-
+import { createLandscape } from './Objects/Landscape';
 const frostedGlass = makeFrostedGlass(0x00ffff);
 
 // Объекты для первых трех пунктов меню basic1-3
@@ -47,7 +47,7 @@ export function createBasic5Objects() {
 
 //advanced1
 export function makeCircleVisualisation(color) {
-  const rollOverGeo = new THREE.CircleGeometry( 4, 32 );  // Круг с радиусом 4 и 32 сегментами
+  const rollOverGeo = new THREE.CircleGeometry( 4, 64 );  // Круг с радиусом 4 и 32 сегментами
   const rollOverMaterial = new THREE.MeshBasicMaterial( { color: color, opacity: 0.5, transparent: true, side: THREE.DoubleSide } );
   const rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
 
@@ -68,7 +68,16 @@ export function createAdvance1Objects() {
   objects.push(plane);
   const circleVisualisation = makeCircleVisualisation(0xffffff);
   objects.push(circleVisualisation);
-  moveRollOverMesh(circleVisualisation);//показать визуализацию, параметры intersect, rollOverMesh. Событие не то!
+  moveRollOverMesh(circleVisualisation);
+  return objects;
+}
+
+export function createAdvance2Objects(environmentTexture) {
+  const objects = [];
+  const glassMaterial = makeGlassMaterial(environmentTexture);
+  const landscape = createLandscape(glassMaterial);
+  objects.add(landscape)
+
   return objects;
 }
 

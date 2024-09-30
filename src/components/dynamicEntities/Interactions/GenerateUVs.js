@@ -15,7 +15,7 @@ newUVs.set(uvs);
 newUVs[newSize - 2] = uvs[0]; // U-координата первой вершины
 newUVs[newSize - 1] = uvs[1]; // V-координата первой вершины
 
-  console.log(geometry.attributes.uv, 'uvs')
+  // console.log(geometry.attributes.uv, 'uvs')
   let minU = Infinity, maxU = -Infinity;
   let minV = Infinity, maxV = -Infinity;
 

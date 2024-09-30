@@ -11,6 +11,7 @@ import {
   createBasic4Objects,
   createBasic5Objects,
   createAdvance1Objects,
+  createAdvance2Objects,
   createAdvance3Objects,
 } from '../DynamicEntities/DinamicObjects.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -24,7 +25,6 @@ import { changeSizeAsDistance } from '../DynamicEntities/Interactions/ChangeSize
 import { moveRollOverMesh } from '../DynamicEntities/DinamicFunctions.js';
 import { makeCircleVisualisation } from '../DynamicEntities/DinamicObjects.js';
 import { createOrChangeCircle } from '../DynamicEntities/DinamicFunctions.js';
-// import { handlePointerMove } from '../DynamicEntities/DinamicFunctions.js';
 import { deleteSceneObjects } from '../DynamicEntities/DinamicFunctions.js';
 
 import { handleResize } from '../ThreeJSScene/HandleResize.js';
@@ -38,11 +38,10 @@ const { Sider } = Layout;
 
 const App = () => {
   //выяснить почему у вновь созданного объекта цвет старого
-  const [selectedObject, setSelectedObject] = useState('6'); //TODO поменять обратно на 0
+  const [selectedObject, setSelectedObject] = useState('0');
   const [helperAdded, setHelperAdded] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
-  //инициализация текстуры для advanced 3-4 происходит здесь для передачи ей цикла анимации
 
   const handleCheckboxChange = (e) => {
     setHelperAdded(e.target.checked);
@@ -61,7 +60,7 @@ const App = () => {
       key: '8', label: (
         <div>
           Advanced 3
-          <Checkbox//вынести в отдельный компонент и поместить
+          <Checkbox//вынести в отдельный компонент
             checked={helperAdded}
             onChange={handleCheckboxChange}
             style={{ marginLeft: 25, color: 'gray' }}
@@ -101,17 +100,17 @@ const App = () => {
   }, []);
 
   // Функция-обработчик указателя
-const handlePointerMove = (frameCount, rollOverMesh, scene, camera) => (event) => {
-  frameCount++;
-  if (frameCount % 4 !== 0) return;
-  // Оптимизация, перехватываем каждый 4-й кадр
+  const handlePointerMove = (frameCount, rollOverMesh, scene, camera) => (event) => {
+    frameCount++;
+    if (frameCount % 4 !== 0) return;
+    // Оптимизация, перехватываем каждый 4-й кадр
 
-  if (!rollOverMesh) return;
-  // Проверяем, что объект существует
+    if (!rollOverMesh) return;
+    // Проверяем, что объект существует
 
-  moveRollOverMesh(rollOverMesh, scene, camera, event);
-  // Вызов перемещения
-};
+    moveRollOverMesh(rollOverMesh, scene, camera, event);
+    // Вызов перемещения
+  };
 
 
   // Добавление и удаление объектов
@@ -125,6 +124,7 @@ const handlePointerMove = (frameCount, rollOverMesh, scene, camera) => (event) =
     let createdObjects = [];
     let frameCount = 0; // Счётчик для оптимизации
     let pointerMoveHandler = null;
+    //переменная для хранения функции чтобы добавлять и удалять слушатели
 
     // Логика по выбранному объекту
     switch (selectedObject) {
@@ -150,6 +150,10 @@ const handlePointerMove = (frameCount, rollOverMesh, scene, camera) => (event) =
         pointerMoveHandler = handlePointerMove(frameCount, rollOverMesh, scene, camera);
         window.addEventListener('pointermove', pointerMoveHandler);
         break;
+      case '7':
+        createdObjects = createAdvance2Objects(scene.environment);
+        console.log(createdObjects, 'createdObjects')
+        break;
       case '8':
         sceneParamsRef.current.camera.position.set(2000, 300, -500);
         const texture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg);
@@ -159,7 +163,7 @@ const handlePointerMove = (frameCount, rollOverMesh, scene, camera) => (event) =
         // createdObjects = createAdvance1Objects();
         break;
       default:
-        // Действия по умолчанию, если нужно
+
         break;
     }
     createdObjects.forEach(obj => {
@@ -196,6 +200,8 @@ const handlePointerMove = (frameCount, rollOverMesh, scene, camera) => (event) =
             makeRandomPosition(scene, camera);
           } else if (selectedObject === '6') {
             createOrChangeCircle(clickedObject, intersects[0], scene, makeCircleVisualisation);
+            // подсчет площади пересечения
+
           } else if (selectedObject === '7') {
 
           } else if (selectedObject === '9') {
