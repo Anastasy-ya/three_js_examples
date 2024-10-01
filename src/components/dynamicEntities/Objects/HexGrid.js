@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { generateUVs } from '../Interactions/GenerateUVs';
+import { generateUVs } from '../Interactions/Advanced_3';
 
 // Функция для создания шестиугольника
 function createHexagon(radius, helper) {

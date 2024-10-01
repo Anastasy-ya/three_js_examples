@@ -1,14 +1,15 @@
 import * as THREE from 'three';
-
 import { createRoundedBoxGeometry } from './Objects/RoundedBoxGeometry';
 import { makeGlassMaterial } from './Materials/GlassMaterial';
 import { makeFrostedGlass } from './Materials/FrostedGlass';
 import { Cube } from './Objects/Cube';
 import { Plane } from './Objects/Plane';
 import { generateHexGrid } from './Objects/HexGrid';
-import { moveRollOverMesh } from './DinamicFunctions';
-// import { getIntersectedObject } from '../DynamicEntities/DinamicFunctions';
+import { moveRollOverMesh } from './Interactions/Advanced_1_2';
 import { createLandscape } from './Objects/Landscape';
+import { makeCircleVisualisation } from '../DynamicEntities/Objects/CircleVisualisation';
+import { makeBoxVisualisation } from '../DynamicEntities/Objects/BoxVisualisation';
+
 const frostedGlass = makeFrostedGlass(0x00ffff);
 
 // Объекты для первых трех пунктов меню basic1-3
@@ -46,38 +47,6 @@ export function createBasic5Objects() {
 }
 
 //advanced1
-
-//перенести в объекты
-export function makeCircleVisualisation(color) {
-  const rollOverGeo = new THREE.CircleGeometry( 4, 64 );  // Круг с радиусом 4 и 32 сегментами
-  const rollOverMaterial = new THREE.MeshBasicMaterial( { color: color, opacity: 0.5, transparent: true, side: THREE.DoubleSide } );
-  const rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-
-  rollOverMesh.rotation.x = Math.PI / 2;
-  rollOverMesh.position.y = .01;
-  rollOverMesh.name = 'rollOverMesh';
-
-  // Сделать объект невидимым для raycaster
-  rollOverMesh.raycast = () => {};
-
-  return rollOverMesh;
-}
-
-//перенести в объекты
-export function makeBoxVisualisation(color) {
-  const rollOverBox = new THREE.BoxGeometry( 32, 32, 32 );
-  const rollOverMaterial = new THREE.MeshBasicMaterial( { color: color, opacity: 0.5, transparent: true, side: THREE.DoubleSide } );
-  const rollOverMesh = new THREE.Mesh( rollOverBox, rollOverMaterial );
-  rollOverMesh.position.y = 6;
-  rollOverMesh.name = 'rollOverBox';
-
-  // Сделать объект невидимым для raycaster
-  rollOverMesh.raycast = () => {};
-
-  return rollOverMesh;
-}
-
-
 export function createAdvance1Objects() {
   const objects = [];
   const plane = new Plane(0x67595e, 'plane_1', 8).mesh;
@@ -88,6 +57,7 @@ export function createAdvance1Objects() {
   return objects;
 }
 
+//advanced2
 export function createAdvance2Objects() {
   const objects = [];
 
@@ -100,6 +70,7 @@ export function createAdvance2Objects() {
   return objects;
 }
 
+//advanced3
 export function createAdvance3Objects(planeSize, hexRadius, helper, textureMaterial) {// helper true/false
   const objects = [];
   const plane = new Plane(0x67595e, 'plane_1', 2048).mesh;
@@ -109,4 +80,3 @@ export function createAdvance3Objects(planeSize, hexRadius, helper, textureMater
   objects.push(hexGroup);
   return objects;
 }
-

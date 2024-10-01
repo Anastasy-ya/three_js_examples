@@ -26,8 +26,8 @@ export function createLandscape() {
 
   // Добавление источника света для LambertMaterial
   const light = new THREE.DirectionalLight(0xffffff, 1);
-  light.position.set(0, 50, 50);  // Направление света
-  landscape.add(light);  // Не забудь добавить свет в сцену отдельно!
+  light.position.set(0, 50, 50);
+  landscape.add(light);
 
   return landscape;
 }

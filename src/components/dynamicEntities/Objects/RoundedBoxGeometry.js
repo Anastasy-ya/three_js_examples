@@ -19,7 +19,6 @@ export function createRoundedBoxGeometry(width, height, depth, radius, smoothnes
     bevelThickness: radius,
     curveSegments: Math.max(smoothness, 2),
   });
-
   geometry.center();
 
   return geometry;

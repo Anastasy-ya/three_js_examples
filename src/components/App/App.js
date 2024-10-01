@@ -1,6 +1,3 @@
-//разобраться с осями
-// todo раскидать элементы по файлам
-// разделить функции в interactions
 import React, { useEffect, useState, useRef } from 'react';
 import * as THREE from 'three';
 import { Layout, Menu, Spin, Checkbox } from 'antd';
@@ -16,17 +13,15 @@ import {
 } from '../DynamicEntities/DinamicObjects.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { getIntersectedObject } from '../DynamicEntities/DinamicFunctions.js';
-import { makeTexture } from '../DynamicEntities/Materials/makeTexture.js';
-import { makeChildren, makeRandomPosition } from '../DynamicEntities/Interactions/MakeRandomPosition.js';
-import { handleCubeClick } from '../DynamicEntities/Interactions/HandleCubeClick.js';
-import { createDecals } from '../DynamicEntities/Interactions/CreateDecals.js';
-import { createLineToCentresOfGeometry } from '../DynamicEntities/Interactions/CreateLineToCentresOfGeometry.js';
-import { changeSizeAsDistance } from '../DynamicEntities/Interactions/ChangeSizeAsDistance.js';
-import { moveRollOverMesh } from '../DynamicEntities/DinamicFunctions.js';
-import { makeCircleVisualisation } from '../DynamicEntities/DinamicObjects.js';
-import { createOrChangeCircle } from '../DynamicEntities/DinamicFunctions.js';
+import { makeTexture } from '../DynamicEntities/Materials/MakeTexture.js';
+import { makeChildren, makeRandomPosition } from '../DynamicEntities/Interactions/Basic_5.js';
+import { handleCubeClick } from '../DynamicEntities/Interactions/Basic_1.js';
+import { createDecals } from '../DynamicEntities/Interactions/Basic_2.js';
+import { createLineToCentresOfGeometry } from '../DynamicEntities/Interactions/Basic_3.js';
+import { changeSizeAsDistance } from '../DynamicEntities/Interactions/Basic_4.js';
+import { moveRollOverMesh, createOrChangeMesh } from '../DynamicEntities/Interactions/Advanced_1_2.js';
+import {  } from '../DynamicEntities/Interactions/Advanced_1_2.js';
 import { deleteSceneObjects } from '../DynamicEntities/DinamicFunctions.js';
-
 import { handleResize } from '../ThreeJSScene/HandleResize.js';
 
 import baseColorImg from '../Assets/texture2/Rubber_Sole_003_basecolor.jpg';
@@ -37,8 +32,8 @@ import normalMapImg from '../Assets/texture2/Rubber_Sole_003_normal.jpg';
 const { Sider } = Layout;
 
 const App = () => {
-  //выяснить почему у вновь созданного объекта цвет старого
-  const [selectedObject, setSelectedObject] = useState('7'); //TODO вернуть на 0
+  //TODO выяснить где происходит замыкание и у вновь созданного объекта цвет старого и не менять (будет фичей)
+  const [selectedObject, setSelectedObject] = useState('0');
   const [helperAdded, setHelperAdded] = useState(false);
   const [sceneReady, setSceneReady] = useState(false);
   const sceneParamsRef = useRef(null);
@@ -60,7 +55,7 @@ const App = () => {
       key: '8', label: (
         <div>
           Advanced 3
-          <Checkbox//вынести в отдельный компонент
+          <Checkbox
             checked={helperAdded}
             onChange={handleCheckboxChange}
             style={{ marginLeft: 25, color: 'gray' }}
@@ -154,23 +149,20 @@ const App = () => {
       case '7':
         //Поскольку навешивается либо слушатель из case 6, либо из case 7 и они идентичны,
         // требуется только один раз удалять слушатель
-        sceneParamsRef.current.camera.position.set(100, 23, 7);
+        sceneParamsRef.current.camera.position.set(80, 30, 50);
         createdObjects = createAdvance2Objects();
         const rollOverBox = createdObjects.find(mesh => mesh.name === 'rollOverBox');
         //храню функцию внутри pointerMoveHandler для добавления и удаления слушателя
-        pointerMoveHandler = handlePointerMove(frameCount, rollOverBox, scene, camera, 6);
-        //подъем на 6 чтобы куб стоял на плоскости, а не утопал в ней.
-        //Разброс высоты плоскости по 10 вверх и вниз, значит и куб может опуститься на -10 + (32 / 2)
+        pointerMoveHandler = handlePointerMove(frameCount, rollOverBox, scene, camera, 0);
         window.addEventListener('pointermove', pointerMoveHandler);
         break;
-
       case '8':
         sceneParamsRef.current.camera.position.set(2000, 300, -500);
         const texture = makeTexture(baseColorImg, ambientOcclusImg, heightImg, normalMapImg);
         createdObjects = createAdvance3Objects(2048, 128, helperAdded, texture);
         break;
       case '9':
-        // createdObjects = createAdvance1Objects();
+        // для дописывания функционала при клике на advanced 4
         break;
       default:
 
@@ -209,11 +201,9 @@ const App = () => {
           } else if (selectedObject === '5') {
             makeRandomPosition(scene, camera);
           } else if (selectedObject === '6') {
-            createOrChangeCircle(clickedObject, intersects[0], scene, makeCircleVisualisation);
-            // подсчет площади пересечения
-
+            createOrChangeMesh(clickedObject, intersects[0], scene, 'circle');
           } else if (selectedObject === '7') {
-
+            createOrChangeMesh(clickedObject, intersects[0], scene, 'box');
           } else if (selectedObject === '9') {
 
           }

@@ -19,7 +19,7 @@ export function makeTexture(
   const normalTexture = textureLoader.load(normalMapImg);
 
   // Настройка повторения текстур
-  const textures = [baseColorTexture, ambientOcclusTexture, heightTexture, normalTexture]; //, metalnessTexture, opacityTexture, roughnessTexture
+  const textures = [baseColorTexture, ambientOcclusTexture, heightTexture, normalTexture];
   textures.forEach(texture => {
     if (texture) {
       texture.wrapS = THREE.RepeatWrapping;
@@ -31,7 +31,7 @@ export function makeTexture(
   const material = new THREE.MeshStandardMaterial({
     map: baseColorTexture,
     aoMap: ambientOcclusTexture,
-    displacementMap: heightTexture, // требуют добавления сегментов чтобы изменить высоту
+    displacementMap: heightTexture, // требует добавления сегментов чтобы изменить высоту
     displacementScale: displacementScale,
     normalMap: normalTexture,
     side: THREE.DoubleSide
