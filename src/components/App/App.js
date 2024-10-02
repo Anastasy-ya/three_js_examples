@@ -72,7 +72,6 @@ const App = () => {
   useEffect(() => {
     const { scene, camera, renderer } = initScene();
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
     sceneParamsRef.current = { scene, camera, renderer, controls };
 
     const animate = () => {
